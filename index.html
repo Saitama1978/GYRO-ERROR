@@ -21,10 +21,54 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
         
+        /* HEADER AT ICON STYLES */
         header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px; }
         header h1 { font-size: 1.5rem; color: var(--yellow-gold); text-transform: uppercase; letter-spacing: 1px; }
         header p { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
 
+        .radar-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .radar-scope {
+            position: relative;
+            width: 65px;
+            height: 65px;
+            background: #090d16;
+            border: 2px solid var(--accent-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            overflow: hidden;
+        }
+        .crosshair-h {
+            position: absolute;
+            top: 50%; left: 0; width: 100%; height: 1px;
+            background: rgba(56, 189, 248, 0.4);
+        }
+        .crosshair-v {
+            position: absolute;
+            left: 50%; top: 0; width: 1px; height: 100%;
+            background: rgba(56, 189, 248, 0.4);
+        }
+        .gyro-line {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 28px; height: 2px;
+            background: var(--accent-red);
+            transform-origin: left center;
+            transform: rotate(-35deg);
+        }
+        .true-line {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 30px; height: 2px;
+            background: var(--accent-green);
+            transform-origin: left center;
+            transform: rotate(-15deg);
+        }
+
+        /* LAYOUT STYLES */
         .main-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
         @media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
 
@@ -62,7 +106,7 @@
         @media print {
             body { background: white; color: black; padding: 0; }
             .card { border: none; box-shadow: none; background: transparent; }
-            .btn-row, .input-group, .form-grid, header p, .log-list { display: none !important; }
+            .btn-row, .input-group, .form-grid, header p, .log-list, .radar-container { display: none !important; }
             .main-container { grid-template-columns: 1fr; }
             .result-box { border: 1px solid #000; color: #000; display: block !important; }
             .res-row { color: #000; border-bottom: 1px solid #ccc; }
@@ -76,6 +120,14 @@
 <body>
 
     <header>
+        <div class="radar-container">
+            <div class="radar-scope">
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+                <div class="gyro-line"></div>
+                <div class="true-line"></div>
+            </div>
+        </div>
         <h1>Gyro Error Calculator</h1>
         <p>Fully Automated Lifetime Almanac Analytics Engine</p>
     </header>
@@ -83,7 +135,6 @@
     <div class="print-header">GYRO ERROR OBSERVATION REPORT</div>
 
     <div class="main-container">
-        <!-- INPUT PANEL -->
         <div class="card">
             <h2>Observation Inputs</h2>
             <div class="form-grid">
@@ -172,7 +223,6 @@
             </div>
         </div>
 
-        <!-- OUTPUT PANEL -->
         <div class="card">
             <h2>Calculated Analytics</h2>
             <div class="result-box">
@@ -192,31 +242,28 @@
 
             <h2 style="margin-top: 20px; font-size:0.95rem;">Bridge History Logs</h2>
             <div class="log-list" id="log-container">
-                <!-- Dito papasok ang mga nase-save -->
-            </div>
+                </div>
         </div>
     </div>
 
     <script>
-        // Set default date sa pangkasalukuyan para hindi na mahirapan ang opisyal
+        // Automatic setup para sa kasalukuyang petsa
         document.getElementById('obs-date').value = new Date().toISOString().split('T')[0];
         
-        // PANG-LIFETIME NA ALMANAC MATRICES (Semi-analytic approximation model base sa orbital mechanics)
+        // Lifetime Orbital Approximation Engine
         function getCelestialAlmanac(body, dateStr, utcHour) {
             const d = (new Date(dateStr + "T00:00:00Z").getTime() / 86400000) - 10957.5 + (utcHour / 24); 
-            let gha = (100.46 + 0.985647 * d + utcHour * 15) % 360; // GMST Base Approximation
+            let gha = (100.46 + 0.985647 * d + utcHour * 15) % 360; 
             let dec = 0;
 
             if (body === "Sun") {
                 let g = (357.528 + 0.9856003 * d) * Math.PI / 180;
                 let q = (280.46 + 0.9856474 * d) * Math.PI / 180;
                 let L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * Math.PI / 180;
-                let R = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g);
                 let e = (23.439 - 0.0000004 * d) * Math.PI / 180;
                 dec = Math.asin(Math.sin(e) * Math.sin(L)) * 180 / Math.PI;
                 gha = (gha + (L * 180 / Math.PI) - 280) % 360; 
             } else {
-                // Para sa mga Bituin (Stars) - Gumagamit ng SHA offset profile para sa pang-lifetime na takbo
                 let starOffsets = {
                     "Sirius": {sha: 258.3, dec: -16.7}, "Canopus": {sha: 263.9, dec: -52.7},
                     "Vega": {sha: 96.3, dec: 38.8}, "Capella": {sha: 280.6, dec: 46.0},
@@ -260,28 +307,23 @@
 
             if (!time) { alert("Paki-input ang oras ng obserbasyon, boss!"); return; }
 
-            // 1. KUNIN ANG UTC TIME
             let hours = parseInt(time.split(':')[0]);
             let minutes = parseInt(time.split(':')[1]);
             let lmtHour = hours + (minutes / 60);
             let utcHour = (lmtHour + zd + 24) % 24;
 
-            // 2. RUN LIFETIME ALMANAC ENGINE
             const almanac = getCelestialAlmanac(body, date, utcHour);
             
-            // 3. MATEMATIKONG AZIMUTH SOLVER (PZ Triangle Navigation)
             let lha = (almanac.gha + lon + 360) % 360;
             let latRad = lat * Math.PI / 180;
             let decRad = almanac.dec * Math.PI / 180;
             let lhaRad = lha * Math.PI / 180;
 
-            // Azimuth formula: tan(Z) = sin(LHA) / (tan(Dec)*cos(Lat) - sin(Lat)*cos(LHA))
             let dTop = Math.sin(lhaRad);
             let dBottom = (Math.tan(decRad) * Math.cos(latRad)) - (Math.sin(latRad) * Math.cos(lhaRad));
             let zRad = Math.atan2(dTop, dBottom);
             let zn = (zRad * 180 / Math.PI + 360) % 360;
 
-            // 4. ANALYZE ERROR PROFILES
             let gyroError = zn - gyro;
             if (gyroError > 180) gyroError -= 360;
             if (gyroError < -180) gyroError += 360;
@@ -289,11 +331,9 @@
             let errorDir = gyroError >= 0 ? "E" : "W";
             let absError = Math.abs(gyroError);
 
-            // True Compass Calculation
             let effVar = varDir === "E" ? variation : -variation;
             let magneticBrg = (zn - effVar + 360) % 360;
 
-            // DISPLAY SA TEMPLATE INTERFACE
             document.getElementById('res-body').innerText = `${body}`;
             document.getElementById('res-gha').innerText = `${almanac.gha.toFixed(2)}°`;
             document.getElementById('res-dec').innerText = `${Math.abs(almanac.dec).toFixed(2)}° ${almanac.dec >= 0 ? 'N' : 'S'}`;
@@ -316,7 +356,7 @@
             const logHTML = `
                 <div class="log-item">
                     <div>
-                        <strong>${body} Obs</strong> at ${timeStamp} <br>
+                        <strong>${body} Observation</strong> at ${timeStamp} <br>
                         <span style="color:var(--text-muted)">Zn: ${zn}</span>
                     </div>
                     <div style="font-weight:bold; color:var(--yellow-gold); font-size:0.95rem;">Err: ${error}</div>
