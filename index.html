@@ -68,13 +68,11 @@
         .form-control { width: 100%; background-color: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; outline: none; }
         .btn-calc { width: 100%; background: linear-gradient(180deg, #f0883e, #d36f27); color: #000; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-transform: uppercase; cursor: pointer; }
         
-        /* Export Actions Styling */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
         .btn-action { padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-save { background-color: #238636; color: #fff; }
         .btn-save:hover { background-color: #2ea043; }
         .btn-print { background-color: #21262d; color: #c9d1d9; border: 1px solid var(--border-color); }
-        .btn-print:hover { background-color: #30363d; }
 
         .results-panel { background: #05070a; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: monospace; }
         .res-line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.85rem; }
@@ -83,11 +81,19 @@
         .math-header { font-size: 0.8rem; color: var(--accent-yellow); margin-top: 10px; font-weight: bold; text-transform: uppercase; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px;}
         footer { text-align: center; padding: 15px 0 5px 0; font-size: 0.75rem; color: #8b949e; border-top: 1px solid var(--border-color); margin-top: 15px; }
 
+        /* FIXED PRINT CSS SECTIONS */
         @media print {
-            body { background: white; color: black; }
-            .tab-container, .card:not(.results-panel), .dev-brand-card, header, footer, .action-grid { display: none !important; }
-            .results-panel { border: 1px solid #000; background: white; color: black; max-width: 100%; }
-            .val-out, .math-header { color: black !important; }
+            body { background: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; }
+            header, .dev-brand-card, #liveClock, .tab-container, .btn-calc, .action-grid, footer { display: none !important; }
+            .tab-content { display: none !important; }
+            .tab-content.active { display: block !important; width: 100% !important; max-width: 100% !important; }
+            .card { background: #ffffff !important; border: none !important; padding: 0 !important; margin-bottom: 20px !important; display: block !important; }
+            .form-control, select { background: #ffffff !important; color: #000000 !important; border: 1px solid #000000 !important; -webkit-appearance: none; }
+            .results-panel { background: #ffffff !important; border: 2px solid #000000 !important; color: #000000 !important; display: block !important; opacity: 1 !important; visibility: visible !important; }
+            .res-line { border-bottom: 1px dashed #000000 !important; color: #000000 !important; }
+            .val-out { color: #000000 !important; }
+            .math-header { color: #000000 !important; border-bottom: 1px solid #000000 !important; }
+            .total-highlight { background: #eeeeee !important; border: 1px solid #000000 !important; }
         }
     </style>
 </head>
@@ -110,6 +116,7 @@
         <button class="tab-btn" onclick="switchTab('starTab', this)">Star Finder</button>
     </div>
 
+    <!-- ================= TAB 1: COMPASS ERROR ================= -->
     <div id="compassTab" class="tab-content active">
         <div class="card">
             <div class="section-title">1. Position & Target</div>
@@ -169,7 +176,7 @@
 
         <div class="card">
             <div class="section-title">3. Computation Analytics</div>
-            <div class="results-panel" id="compassPrintArea">
+            <div class="results-panel">
                 <div class="res-line"><span>Target Object:</span><span class="val-out" id="outTrackObject">---</span></div>
                 <div class="res-line"><span>UTC Time:</span><span class="val-out" id="outUTCTime" style="color:var(--text-gold);">---</span></div>
                 
@@ -198,6 +205,7 @@
         </div>
     </div>
 
+    <!-- ================= TAB 2: STAR FINDER ================= -->
     <div id="starTab" class="tab-content">
         <div class="card">
             <div class="section-title">1. Star Finder Time & Position</div>
@@ -249,7 +257,7 @@
 
         <div class="card">
             <div class="section-title">3. Sighting Targets</div>
-            <div class="results-panel" id="starPrintArea">
+            <div class="results-panel">
                 <div class="res-line"><span>Object Selected:</span><span class="val-out" id="outStarName" style="color:var(--accent-yellow);">---</span></div>
                 <div class="res-line"><span>UTC Equivalent:</span><span class="val-out" id="outStarUTC">---</span></div>
                 <div class="res-line"><span>SHA Data:</span><span class="val-out" id="outStarSHA">---</span></div>
@@ -271,7 +279,7 @@
         </div>
     </div>
 
-    <footer>Bridge Navigation Suite v4.8 | Powered by Renante Fullo</footer>
+    <footer>Bridge Navigation Suite v4.9 | Powered by Renante Fullo</footer>
 
     <script>
         const starDb = {
@@ -487,7 +495,7 @@
             document.getElementById('outDev').innerText = formatError(deviation);
         }
 
-        // ================= TEXT FILE SAVE SYSTEM GENERATOR =================
+        // ================= UPDATED TXT FILE SAVE SYSTEM (NO DEVELOPER INFO) =================
         function saveAsTxt(type) {
             let logText = "";
             let filename = "";
@@ -500,7 +508,6 @@
                 filename = `CompassError_Report_${document.getElementById('date').value}.txt`;
                 logText = `==================================================\n` +
                           `        BRIDGE NAVIGATION SUITE - REPORT          \n` +
-                          `           Developer: Renante Fullo               \n` +
                           `==================================================\n` +
                           `Log Created On : ${timestamp} UTC\n\n` +
                           `[INPUT DATA DATASET]\n` +
@@ -537,7 +544,6 @@
                 filename = `StarFinder_Report_${document.getElementById('starDate').value}.txt`;
                 logText = `==================================================\n` +
                           `        BRIDGE NAVIGATION SUITE - STAR FINDER     \n` +
-                          `           Developer: Renante Fullo               \n` +
                           `==================================================\n` +
                           `Log Created On : ${timestamp} UTC\n\n` +
                           `[POSITION & TIME DATA]\n` +
@@ -561,7 +567,6 @@
                           `             End of Automated Record              `;
             }
 
-            // Create blob and trigger browser download
             let blob = new Blob([logText], {type: "text/plain;charset=utf-8"});
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
