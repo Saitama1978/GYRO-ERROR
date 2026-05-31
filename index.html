@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bridge Navigation Engine (Ultra Complete)</title>
+    <title>Bridge Navigation Suite (Pro Edition)</title>
     <style>
         :root {
             --bg-dark: #0d1117;
@@ -18,14 +18,50 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-white); padding: 10px; font-size: 14px; }
-        header { text-align: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-        header h1 { font-size: 1.2rem; color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 1px; }
-        .live-bar { font-family: monospace; font-size: 0.8rem; text-align: center; color: #8b949e; margin: 10px 0; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 4px; }
+        
+        header { text-align: center; padding: 10px 0 5px 0; }
+        header h1 { font-size: 1.2rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        
+        /* DEVELOPER BRANDING CARD (Katulad sa Lotto Asintado Pro) */
+        .dev-brand-card {
+            background-color: #10151c;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            max-width: 480px;
+            margin: 0 auto 12px auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dev-icon {
+            background: linear-gradient(135deg, #ffc107, #f0883e);
+            color: #000;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 0 8px rgba(240, 136, 62, 0.4);
+        }
+        .dev-details { flex: 1; }
+        .dev-title { font-size: 0.85rem; font-weight: bold; color: #fff; letter-spacing: 0.5px; }
+        .dev-sub { font-size: 0.75rem; color: #8b949e; margin-top: 2px; }
+        .dev-sub span { color: var(--text-green); font-weight: 600; }
+
+        .live-bar { font-family: monospace; font-size: 0.8rem; text-align: center; color: #8b949e; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 4px; max-width: 480px; margin-left: auto; margin-right: auto; }
+        
+        /* TABS NAVIGATION */
         .tab-container { display: flex; gap: 5px; margin-bottom: 12px; max-width: 480px; margin-left: auto; margin-right: auto; }
         .tab-btn { flex: 1; padding: 10px; background: var(--input-bg); border: 1px solid var(--border-color); color: #8b949e; font-weight: bold; font-size: 0.9rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
         .tab-btn.active { background: var(--card-bg); color: var(--accent-yellow); border-bottom: 2px solid var(--accent-yellow); }
+        
         .tab-content { display: none; max-width: 480px; margin: 0 auto; flex-direction: column; gap: 12px; }
         .tab-content.active { display: flex; }
+        
         .section-title { font-size: 0.85rem; text-transform: uppercase; color: #8b949e; letter-spacing: 0.5px; margin-bottom: 6px; border-left: 3px solid var(--accent-yellow); padding-left: 6px; }
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -33,6 +69,7 @@
         label { display: block; font-size: 0.75rem; color: #8b949e; margin-bottom: 4px; font-weight: 600; }
         .form-control { width: 100%; background-color: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; outline: none; }
         .btn-calc { width: 100%; background: linear-gradient(180deg, #f0883e, #d36f27); color: #000; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-transform: uppercase; cursor: pointer; }
+        
         .results-panel { background: #05070a; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: monospace; }
         .res-line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.85rem; }
         .res-line.header-style { font-weight: bold; color: var(--accent-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 6px; font-size: 0.9rem; }
@@ -44,6 +81,15 @@
 <body>
 
     <header><h1>Bridge Navigation Suite</h1></header>
+    
+    <div class="dev-brand-card">
+        <div class="dev-icon">★</div>
+        <div class="dev-details">
+            <div class="dev-title">BRIDGE NAVIGATION ENGINE PRO</div>
+            <div class="dev-sub">Developer: <strong>Renante Fullo</strong> | Engine: <span>Live Matrix Synced ⚓</span></div>
+        </div>
+    </div>
+
     <div id="liveClock" class="live-bar">--/--/---- --:--:-- UTC</div>
 
     <div class="tab-container">
@@ -98,7 +144,7 @@
             </div>
             <div class="row">
                 <div style="grid-column:span 2;">
-                    <label>Variation</label>
+                    <label>Variation (Chart Data)</label>
                     <input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control" value="0">
                 </div>
             </div>
@@ -106,9 +152,9 @@
         </div>
 
         <div class="card">
-            <div class="section-title">3. Analytics</div>
+            <div class="section-title">3. Computation Analytics</div>
             <div class="results-panel">
-                <div class="res-line"><span>Target:</span><span class="val-out" id="outTrackObject">---</span></div>
+                <div class="res-line"><span>Target Object:</span><span class="val-out" id="outTrackObject">---</span></div>
                 <div class="res-line"><span>UTC Time:</span><span class="val-out" id="outUTCTime" style="color:var(--text-gold);">---</span></div>
                 <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outZn" style="color:var(--text-green);">---</span></div>
                 <div class="res-line"><span>GYRO ERROR:</span><span class="val-out" id="outGyroErr">---</span></div>
@@ -128,8 +174,8 @@
                 <div style="flex:2;">
                     <label>Latitude (Deg / Min)</label>
                     <div style="display:flex; gap:4px;">
-                        <input type="number" id="starLatDeg" placeholder="°" class="form-control" value="14">
-                        <input type="number" id="starLatMin" placeholder="'" class="form-control" value="0">
+                        <input type="number" id="starLatDeg" placeholder="°" class="form-control" value="8">
+                        <input type="number" id="starLatMin" placeholder="'" class="form-control" value="45">
                     </div>
                 </div>
                 <div style="flex:1;"><label>N/S</label><select id="starLatDir" class="form-control"><option value="N">N</option><option value="S">S</option></select></div>
@@ -138,8 +184,8 @@
                 <div style="flex:2;">
                     <label>Longitude (Deg / Min)</label>
                     <div style="display:flex; gap:4px;">
-                        <input type="number" id="starLonDeg" placeholder="°" class="form-control" value="121" oninput="autoCalculateZD('starLonDeg','starLonDir','starZd')">
-                        <input type="number" id="starLonMin" placeholder="'" class="form-control" value="0">
+                        <input type="number" id="starLonDeg" placeholder="°" class="form-control" value="123" oninput="autoCalculateZD('starLonDeg','starLonDir','starZd')">
+                        <input type="number" id="starLonMin" placeholder="'" class="form-control" value="45">
                     </div>
                 </div>
                 <div style="flex:1;"><label>E/W</label><select id="starLonDir" class="form-control" onchange="autoCalculateZD('starLonDeg','starLonDir','starZd')"><option value="E">E</option><option value="W">W</option></select></div>
@@ -198,7 +244,7 @@
         </div>
     </div>
 
-    <footer>Navigation Engine v4.5</footer>
+    <footer>Bridge Navigation Suite v4.5 | Powered by Renante Fullo</footer>
 
     <script>
         const today = new Date().toISOString().split('T')[0];
@@ -218,7 +264,6 @@
             document.getElementById(zdId).value = Math.round(lonD / 15);
         }
 
-        // Full 57 Star Mathematical Matrix Database
         const starDb = {
             "Acamar": {sha: 315.2, dec: -40.2}, "Achernar": {sha: 335.2, dec: -57.1}, "Acrux": {sha: 173.1, dec: -63.2}, "Adhara": {sha: 255.4, dec: -29.0},
             "Aldebaran": {sha: 290.8, dec: 16.5}, "Alioth": {sha: 166.4, dec: 55.9}, "Alkaid": {sha: 153.0, dec: 49.3}, "Alnair": {sha: 27.4, dec: -46.9},
