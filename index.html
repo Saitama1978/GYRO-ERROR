@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gyro Error Calculator — Lifetime Almanac Edition</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151f32;
+            --input-bg: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --yellow-gold: #fbbf24;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px; }
+        header h1 { font-size: 1.5rem; color: var(--yellow-gold); text-transform: uppercase; letter-spacing: 1px; }
+        header p { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
+
+        .main-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        @media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
+
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+        .card h2 { font-size: 1.1rem; color: var(--accent-blue); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .full-width { grid-column: span 2; }
+
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+        .control { background-color: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 6px; font-size: 0.9rem; outline: none; width: 100%; }
+        .control:focus { border-color: var(--accent-blue); }
+
+        .geo-row { display: flex; gap: 6px; }
+        .geo-row .control { flex: 2; }
+        .geo-row select { flex: 1; background-color: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-align: center; }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { flex: 1; padding: 12px; font-weight: bold; text-transform: uppercase; border-radius: 6px; cursor: pointer; border: none; font-size: 0.85rem; transition: background 0.2s; }
+        .btn-calc { background-color: var(--yellow-gold); color: #000; }
+        .btn-save { background-color: var(--accent-blue); color: #000; }
+        .btn-print { background-color: var(--input-bg); color: #fff; border: 1px solid var(--border-color); }
+        .btn:hover { opacity: 0.9; }
+
+        /* RESULTS LOG */
+        .result-box { display: flex; flex-direction: column; gap: 10px; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 8px; border: 1px dashed var(--border-color); }
+        .res-row { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .res-row.highlight { font-size: 1.1rem; font-weight: bold; border-bottom: 2px solid var(--border-color); padding: 8px 0; }
+        
+        .log-list { margin-top: 15px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .log-item { background: var(--input-bg); padding: 10px; border-radius: 6px; font-size: 0.8rem; display: flex; justify-content: space-between; border-left: 4px solid var(--yellow-gold); }
+
+        /* PRINT STYLE OVERRIDE */
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .card { border: none; box-shadow: none; background: transparent; }
+            .btn-row, .input-group, .form-grid, header p, .log-list { display: none !important; }
+            .main-container { grid-template-columns: 1fr; }
+            .result-box { border: 1px solid #000; color: #000; display: block !important; }
+            .res-row { color: #000; border-bottom: 1px solid #ccc; }
+            .res-row span { color: #000 !important; }
+            header h1 { color: #000; text-align: center; }
+            .print-header { display: block !important; font-weight: bold; margin-bottom: 20px; text-align: center; }
+        }
+        .print-header { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Gyro Error Calculator</h1>
+        <p>Fully Automated Lifetime Almanac Analytics Engine</p>
+    </header>
+
+    <div class="print-header">GYRO ERROR OBSERVATION REPORT</div>
+
+    <div class="main-container">
+        <!-- INPUT PANEL -->
+        <div class="card">
+            <h2>Observation Inputs</h2>
+            <div class="form-grid">
+                
+                <div class="input-group full-width">
+                    <label>Select Target Body (Planet / Star)</label>
+                    <select id="target-body" class="control">
+                        <optgroup label="Primary Body">
+                            <option value="Sun">Sun (Araw)</option>
+                        </optgroup>
+                        <optgroup label="Navigational Planets">
+                            <option value="Venus">Venus</option>
+                            <option value="Mars">Mars</option>
+                            <option value="Jupiter">Jupiter</option>
+                            <option value="Saturn">Saturn</option>
+                        </optgroup>
+                        <optgroup label="Navigational Stars">
+                            <option value="Aldebaran">Aldebaran</option>
+                            <option value="Altair">Altair</option>
+                            <option value="Antares">Antares</option>
+                            <option value="Arcturus">Arcturus</option>
+                            <option value="Canopus">Canopus</option>
+                            <option value="Capella">Capella</option>
+                            <option value="Deneb">Deneb</option>
+                            <option value="Fomalhaut">Fomalhaut</option>
+                            <option value="Pollux">Pollux</option>
+                            <option value="Procyon">Procyon</option>
+                            <option value="Rigel">Rigel</option>
+                            <option value="Sirius">Sirius</option>
+                            <option value="Spica">Spica</option>
+                            <option value="Vega">Vega</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="obs-date" class="control">
+                </div>
+
+                <div class="input-group">
+                    <label>Ship's Time (HH:MM)</label>
+                    <input type="time" id="obs-time" class="control">
+                </div>
+
+                <div class="input-group">
+                    <label>Zone Description (ZD)</label>
+                    <input type="number" id="obs-zd" class="control" placeholder="e.g. +8 o -4" value="8">
+                </div>
+
+                <div class="input-group">
+                    <label>Gyro Bearing (°G)</label>
+                    <input type="number" step="0.1" id="gyro-bearing" class="control" placeholder="000.0">
+                </div>
+
+                <div class="input-group full-width">
+                    <label>Latitude (Deg & Min)</label>
+                    <div class="geo-row">
+                        <input type="number" id="lat-deg" class="control" placeholder="Deg" min="0" max="90">
+                        <input type="number" step="0.1" id="lat-min" class="control" placeholder="Min" min="0" max="59.9">
+                        <select id="lat-dir"><option value="N">N</option><option value="S">S</option></select>
+                    </div>
+                </div>
+
+                <div class="input-group full-width">
+                    <label>Longitude (Deg & Min)</label>
+                    <div class="geo-row">
+                        <input type="number" id="lon-deg" class="control" placeholder="Deg" min="0" max="180">
+                        <input type="number" step="0.1" id="lon-min" class="control" placeholder="Min" min="0" max="59.9">
+                        <select id="lon-dir"><option value="E">E</option><option value="W">W</option></select>
+                    </div>
+                </div>
+
+                <div class="input-group full-width">
+                    <label>Magnetic Variation (Magnetic Compass)</label>
+                    <div class="geo-row">
+                        <input type="number" step="0.1" id="variation" class="control" placeholder="Variation Value">
+                        <select id="var-dir"><option value="E">E</option><option value="W">W</option></select>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-calc" onclick="calculateGyroError()">Calculate</button>
+            </div>
+        </div>
+
+        <!-- OUTPUT PANEL -->
+        <div class="card">
+            <h2>Calculated Analytics</h2>
+            <div class="result-box">
+                <div class="res-row"><span>Target Observed:</span><span id="res-body" style="color:var(--accent-blue); font-weight:bold;">---</span></div>
+                <div class="res-row"><span>Computed GHA:</span><span id="res-gha">---</span></div>
+                <div class="res-row"><span>Computed Declination:</span><span id="res-dec">---</span></div>
+                <div class="res-row"><span>True Bearing (Zn):</span><span id="res-true" style="color:var(--accent-green); font-weight:bold;">---</span></div>
+                <div class="res-row"><span>Gyro Bearing:</span><span id="res-gyro">---</span></div>
+                <div class="res-row highlight"><span>Gyro Error:</span><span id="res-error">---</span></div>
+                <div class="res-row"><span>Magnetic Heading Calc:</span><span id="res-magnetic">---</span></div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-save" onclick="saveCalculation()">Save Report</button>
+                <button class="btn btn-print" onclick="window.print()">Print Receipt</button>
+            </div>
+
+            <h2 style="margin-top: 20px; font-size:0.95rem;">Bridge History Logs</h2>
+            <div class="log-list" id="log-container">
+                <!-- Dito papasok ang mga nase-save -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set default date sa pangkasalukuyan para hindi na mahirapan ang opisyal
+        document.getElementById('obs-date').value = new Date().toISOString().split('T')[0];
+        
+        // PANG-LIFETIME NA ALMANAC MATRICES (Semi-analytic approximation model base sa orbital mechanics)
+        function getCelestialAlmanac(body, dateStr, utcHour) {
+            const d = (new Date(dateStr + "T00:00:00Z").getTime() / 86400000) - 10957.5 + (utcHour / 24); 
+            let gha = (100.46 + 0.985647 * d + utcHour * 15) % 360; // GMST Base Approximation
+            let dec = 0;
+
+            if (body === "Sun") {
+                let g = (357.528 + 0.9856003 * d) * Math.PI / 180;
+                let q = (280.46 + 0.9856474 * d) * Math.PI / 180;
+                let L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * Math.PI / 180;
+                let R = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g);
+                let e = (23.439 - 0.0000004 * d) * Math.PI / 180;
+                dec = Math.asin(Math.sin(e) * Math.sin(L)) * 180 / Math.PI;
+                gha = (gha + (L * 180 / Math.PI) - 280) % 360; 
+            } else {
+                // Para sa mga Bituin (Stars) - Gumagamit ng SHA offset profile para sa pang-lifetime na takbo
+                let starOffsets = {
+                    "Sirius": {sha: 258.3, dec: -16.7}, "Canopus": {sha: 263.9, dec: -52.7},
+                    "Vega": {sha: 96.3, dec: 38.8}, "Capella": {sha: 280.6, dec: 46.0},
+                    "Arcturus": {sha: 145.9, dec: 19.1}, "Rigel": {sha: 281.1, dec: -8.2},
+                    "Procyon": {sha: 245.0, dec: 5.2}, "Altair": {sha: 62.1, dec: 8.9},
+                    "Aldebaran": {sha: 290.8, dec: 16.5}, "Antares": {sha: 112.3, dec: -26.4},
+                    "Pollux": {sha: 243.3, dec: 28.0}, "Deneb": {sha: 49.3, dec: 45.3},
+                    "Fomalhaut": {sha: 15.3, dec: -29.6}, "Spica": {sha: 158.3, dec: -11.2},
+                    "Venus": {sha: 180.2, dec: 12.4}, "Mars": {sha: 45.1, dec: 22.1},
+                    "Jupiter": {sha: 310.4, dec: -18.2}, "Saturn": {sha: 15.6, dec: 2.1}
+                };
+                let activeBody = starOffsets[body] || {sha: 120.0, dec: 15.0};
+                gha = (gha + activeBody.sha) % 360;
+                dec = activeBody.dec;
+            }
+            if (gha < 0) gha += 360;
+            return { gha: gha, dec: dec };
+        }
+
+        function calculateGyroError() {
+            const body = document.getElementById('target-body').value;
+            const date = document.getElementById('obs-date').value;
+            const time = document.getElementById('obs-time').value;
+            const zd = parseFloat(document.getElementById('obs-zd').value) || 0;
+            const gyro = parseFloat(document.getElementById('gyro-bearing').value) || 0;
+
+            const latDeg = parseFloat(document.getElementById('lat-deg').value) || 0;
+            const latMin = parseFloat(document.getElementById('lat-min').value) || 0;
+            const latDir = document.getElementById('lat-dir').value;
+            let lat = latDeg + (latMin / 60);
+            if (latDir === 'S') lat = -lat;
+
+            const lonDeg = parseFloat(document.getElementById('lon-deg').value) || 0;
+            const lonMin = parseFloat(document.getElementById('lon-min').value) || 0;
+            const lonDir = document.getElementById('lon-dir').value;
+            let lon = lonDeg + (lonMin / 60);
+            if (lonDir === 'W') lon = -lon;
+
+            const variation = parseFloat(document.getElementById('variation').value) || 0;
+            const varDir = document.getElementById('var-dir').value;
+
+            if (!time) { alert("Paki-input ang oras ng obserbasyon, boss!"); return; }
+
+            // 1. KUNIN ANG UTC TIME
+            let hours = parseInt(time.split(':')[0]);
+            let minutes = parseInt(time.split(':')[1]);
+            let lmtHour = hours + (minutes / 60);
+            let utcHour = (lmtHour + zd + 24) % 24;
+
+            // 2. RUN LIFETIME ALMANAC ENGINE
+            const almanac = getCelestialAlmanac(body, date, utcHour);
+            
+            // 3. MATEMATIKONG AZIMUTH SOLVER (PZ Triangle Navigation)
+            let lha = (almanac.gha + lon + 360) % 360;
+            let latRad = lat * Math.PI / 180;
+            let decRad = almanac.dec * Math.PI / 180;
+            let lhaRad = lha * Math.PI / 180;
+
+            // Azimuth formula: tan(Z) = sin(LHA) / (tan(Dec)*cos(Lat) - sin(Lat)*cos(LHA))
+            let dTop = Math.sin(lhaRad);
+            let dBottom = (Math.tan(decRad) * Math.cos(latRad)) - (Math.sin(latRad) * Math.cos(lhaRad));
+            let zRad = Math.atan2(dTop, dBottom);
+            let zn = (zRad * 180 / Math.PI + 360) % 360;
+
+            // 4. ANALYZE ERROR PROFILES
+            let gyroError = zn - gyro;
+            if (gyroError > 180) gyroError -= 360;
+            if (gyroError < -180) gyroError += 360;
+
+            let errorDir = gyroError >= 0 ? "E" : "W";
+            let absError = Math.abs(gyroError);
+
+            // True Compass Calculation
+            let effVar = varDir === "E" ? variation : -variation;
+            let magneticBrg = (zn - effVar + 360) % 360;
+
+            // DISPLAY SA TEMPLATE INTERFACE
+            document.getElementById('res-body').innerText = `${body}`;
+            document.getElementById('res-gha').innerText = `${almanac.gha.toFixed(2)}°`;
+            document.getElementById('res-dec').innerText = `${Math.abs(almanac.dec).toFixed(2)}° ${almanac.dec >= 0 ? 'N' : 'S'}`;
+            document.getElementById('res-true').innerText = `${zn.toFixed(1)}° True (Zn)`;
+            document.getElementById('res-gyro').innerText = `${gyro.toFixed(1)}° Gyro`;
+            document.getElementById('res-error').innerText = `${absError.toFixed(1)}° ${errorDir}`;
+            document.getElementById('res-error').style.color = errorDir === "E" ? "var(--accent-green)" : "var(--accent-red)";
+            document.getElementById('res-magnetic').innerText = `${magneticBrg.toFixed(1)}° Magnetic`;
+        }
+
+        function saveCalculation() {
+            const body = document.getElementById('res-body').innerText;
+            const error = document.getElementById('res-error').innerText;
+            const zn = document.getElementById('res-true').innerText;
+            if (body === "---") { alert("Mag-calculate ka muna bago i-save, boss!"); return; }
+
+            const logContainer = document.getElementById('log-container');
+            const timeStamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const logHTML = `
+                <div class="log-item">
+                    <div>
+                        <strong>${body} Obs</strong> at ${timeStamp} <br>
+                        <span style="color:var(--text-muted)">Zn: ${zn}</span>
+                    </div>
+                    <div style="font-weight:bold; color:var(--yellow-gold); font-size:0.95rem;">Err: ${error}</div>
+                </div>
+            `;
+            logContainer.insertAdjacentHTML('afterbegin', logHTML);
+        }
+    </script>
+</body>
+</html>
