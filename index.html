@@ -22,7 +22,6 @@
         header { text-align: center; padding: 10px 0 5px 0; }
         header h1 { font-size: 1.2rem; color: #fff; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
         
-        /* DEVELOPER BRANDING CARD (Katulad sa Lotto Asintado Pro) */
         .dev-brand-card {
             background-color: #10151c;
             border: 1px solid var(--border-color);
@@ -54,7 +53,6 @@
 
         .live-bar { font-family: monospace; font-size: 0.8rem; text-align: center; color: #8b949e; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 4px; max-width: 480px; margin-left: auto; margin-right: auto; }
         
-        /* TABS NAVIGATION */
         .tab-container { display: flex; gap: 5px; margin-bottom: 12px; max-width: 480px; margin-left: auto; margin-right: auto; }
         .tab-btn { flex: 1; padding: 10px; background: var(--input-bg); border: 1px solid var(--border-color); color: #8b949e; font-weight: bold; font-size: 0.9rem; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
         .tab-btn.active { background: var(--card-bg); color: var(--accent-yellow); border-bottom: 2px solid var(--accent-yellow); }
@@ -97,16 +95,51 @@
         <button class="tab-btn" onclick="switchTab('starTab', this)">Star Finder</button>
     </div>
 
+    <!-- ================= TAB 1: COMPASS ERROR (NOW WITH 57 STARS) ================= -->
     <div id="compassTab" class="tab-content active">
         <div class="card">
             <div class="section-title">1. Position & Target</div>
             <div class="full-row">
                 <label>Celestial Object</label>
                 <select id="target" class="form-control">
-                    <option value="Sun">Sun (Araw)</option>
-                    <option value="Moon">Moon (Buwan)</option>
-                    <option value="Venus">Venus</option><option value="Mars">Mars</option>
-                    <option value="Jupiter">Jupiter</option><option value="Saturn">Saturn</option>
+                    <optgroup label="System Basics">
+                        <option value="Sun">Sun (Araw)</option>
+                        <option value="Moon">Moon (Buwan)</option>
+                        <option value="Venus">Venus</option>
+                        <option value="Mars">Mars</option>
+                        <option value="Jupiter">Jupiter</option>
+                        <option value="Saturn">Saturn</option>
+                    </optgroup>
+                    <optgroup label="57 Navigational Stars">
+                        <option value="Acamar">Acamar</option><option value="Achernar">Achernar</option>
+                        <option value="Acrux">Acrux</option><option value="Adhara">Adhara</option>
+                        <option value="Aldebaran">Aldebaran</option><option value="Alioth">Alioth</option>
+                        <option value="Alkaid">Alkaid</option><option value="Alnair">Alnair</option>
+                        <option value="Alnilam">Alnilam</option><option value="Alphard">Alphard</option>
+                        <option value="Alphecca">Alphecca</option><option value="Alpheratz">Alpheratz</option>
+                        <option value="Altair">Altair</option><option value="Ankaa">Ankaa</option>
+                        <option value="Antares">Antares</option><option value="Arcturus">Arcturus</option>
+                        <option value="Atria">Atria</option><option value="Avior">Avior</option>
+                        <option value="Bellatrix">Bellatrix</option><option value="Betelgeuse">Betelgeuse</option>
+                        <option value="Canopus">Canopus</option><option value="Capella">Capella</option>
+                        <option value="Deneb">Deneb</option><option value="Denebola">Denebola</option>
+                        <option value="Diphda">Diphda</option><option value="Dubhe">Dubhe</option>
+                        <option value="Elnath">Elnath</option><option value="Eltanin">Eltanin</option>
+                        <option value="Enif">Enif</option><option value="Fomalhaut">Fomalhaut</option>
+                        <option value="Gacrux">Gacrux</option><option value="Gienah">Gienah</option>
+                        <option value="Hadar">Hadar</option><option value="Hamal">Hamal</option>
+                        <option value="Kaus Australis">Kaus Australis</option><option value="Kochab">Kochab</option>
+                        <option value="Markab">Markab</option><option value="Menkar">Menkar</option>
+                        <option value="Menkent">Menkent</option><option value="Miaplacidus">Miaplacidus</option>
+                        <option value="Mirfak">Mirfak</option><option value="Nunki">Nunki</option>
+                        <option value="Peacock">Peacock</option><option value="Pollux">Pollux</option>
+                        <option value="Procyon">Procyon</option><option value="Rasalhague">Rasalhague</option>
+                        <option value="Regulus">Regulus</option><option value="Rigel">Rigel</option>
+                        <option value="Rigil Kentaurus">Rigil Kentaurus</option><option value="Sabik">Sabik</option>
+                        <option value="Shaula">Shaula</option><option value="Sirius">Sirius</option>
+                        <option value="Spica">Spica</option><option value="Suhail">Suhail</option>
+                        <option value="Vega">Vega</option><option value="Zubenelgenubi">Zubenelgenubi</option>
+                    </optgroup>
                 </select>
             </div>
             <div class="row">
@@ -163,6 +196,7 @@
         </div>
     </div>
 
+    <!-- ================= TAB 2: STAR FINDER ================= -->
     <div id="starTab" class="tab-content">
         <div class="card">
             <div class="section-title">1. Star Finder Time & Position</div>
@@ -264,6 +298,7 @@
             document.getElementById(zdId).value = Math.round(lonD / 15);
         }
 
+        // 57 Navigational Star Database Matrix
         const starDb = {
             "Acamar": {sha: 315.2, dec: -40.2}, "Achernar": {sha: 335.2, dec: -57.1}, "Acrux": {sha: 173.1, dec: -63.2}, "Adhara": {sha: 255.4, dec: -29.0},
             "Aldebaran": {sha: 290.8, dec: 16.5}, "Alioth": {sha: 166.4, dec: 55.9}, "Alkaid": {sha: 153.0, dec: 49.3}, "Alnair": {sha: 27.4, dec: -46.9},
@@ -288,6 +323,23 @@
             return lonDir === 'E' ? (decTime - zd + 24) % 24 : (decTime + zd + 24) % 24;
         }
 
+        // Dynamic Spherical Trigonometry Core Solver
+        function solveZnAndHc(lat, lon, dec, ghaObject) {
+            let lha = (ghaObject + lon + 360) % 360;
+            let latR = lat * Math.PI / 180;
+            let decR = dec * Math.PI / 180;
+            let lhaR = lha * Math.PI / 180;
+
+            let sinHc = Math.sin(latR) * Math.sin(decR) + Math.cos(latR) * Math.cos(decR) * Math.cos(lhaR);
+            let hc = Math.asin(sinHc) * 180 / Math.PI;
+
+            let cosZ = (Math.sin(decR) - Math.sin(latR) * sinHc) / (Math.cos(latR) * Math.cos(hc * Math.PI / 180));
+            let z = Math.acos(Math.max(-1, Math.min(1, cosZ))) * 180 / Math.PI;
+
+            let zn = (lat >= 0) ? (lha > 180 ? z : 360 - z) : (lha > 180 ? 180 - z : 180 + z);
+            return { zn: (zn + 360) % 360, hc: hc };
+        }
+
         function findStarDetails() {
             const starName = document.getElementById('starSelect').value;
             const timeVal = document.getElementById('starTime').value;
@@ -299,7 +351,7 @@
             let lon = (parseFloat(document.getElementById('starLonDeg').value)||0) + (parseFloat(document.getElementById('starLonMin').value)||0)/60;
             if(document.getElementById('starLonDir').value==='W') lon = -lon;
 
-            if(!timeVal) return;
+            if(!timeVal) { alert("Input Time!"); return; }
             let utc = computeUTC(timeVal, zd, document.getElementById('starLonDir').value);
             document.getElementById('outStarUTC').innerText = Math.floor(utc).toString().padStart(2,'0') + ":" + Math.round((utc%1)*60).toString().padStart(2,'0') + " UTC";
 
@@ -307,25 +359,19 @@
             let ghaAries = (100.46 + 0.985647 * epDay + utc * 15) % 360;
             
             let star = starDb[starName];
-            let lha = (ghaAries + star.sha + lon + 360) % 360;
+            let ghaStar = ghaAries + star.sha;
 
-            let latR = lat*Math.PI/180, decR = star.dec*Math.PI/180, lhaR = lha*Math.PI/180;
-            let sinHc = Math.sin(latR)*Math.sin(decR) + Math.cos(latR)*Math.cos(decR)*Math.cos(lhaR);
-            let hc = Math.asin(sinHc)*180/Math.PI;
-
-            let cosZ = (Math.sin(decR) - Math.sin(latR)*sinHc)/(Math.cos(latR)*Math.cos(hc*Math.PI/180));
-            let z = Math.acos(Math.max(-1, Math.min(1, cosZ)))*180/Math.PI;
-
-            let zn = (lat >= 0) ? (lha > 180 ? z : 360-z) : (lha > 180 ? 180-z : 180+z);
+            let results = solveZnAndHc(lat, lon, star.dec, ghaStar);
 
             document.getElementById('outStarName').innerText = starName.toUpperCase();
             document.getElementById('outStarSHA').innerText = star.sha.toFixed(1) + "°";
             document.getElementById('outStarDec').innerText = Math.abs(star.dec).toFixed(1) + "° " + (star.dec>=0?'N':'S');
-            document.getElementById('outStarZn').innerText = ((zn+360)%360).toFixed(1) + "° True";
-            document.getElementById('outStarHc').innerText = hc.toFixed(1) + "°";
+            document.getElementById('outStarZn').innerText = results.zn.toFixed(1) + "° True";
+            document.getElementById('outStarHc').innerText = results.hc.toFixed(1) + "°";
         }
 
         function runCompassEngine() {
+            const targetObj = document.getElementById('target').value;
             const timeVal = document.getElementById('time').value;
             const dateVal = document.getElementById('date').value;
             const zd = parseFloat(document.getElementById('zd').value) || 0;
@@ -335,36 +381,40 @@
             let lon = (parseFloat(document.getElementById('lonDeg').value)||0) + (parseFloat(document.getElementById('lonMin').value)||0)/60;
             if(document.getElementById('lonDir').value==='W') lon = -lon;
 
-            if(!timeVal) return;
+            if(!timeVal) { alert("Input Time!"); return; }
             let utc = computeUTC(timeVal, zd, document.getElementById('lonDir').value);
             document.getElementById('outUTCTime').innerText = Math.floor(utc).toString().padStart(2,'0') + ":" + Math.round((utc%1)*60).toString().padStart(2,'0') + " UTC";
 
             let epDay = (new Date(dateVal+"T00:00:00Z").getTime()/86400000) - 10957.5 + (utc/24);
             let ghaAries = (100.46 + 0.985647 * epDay + utc * 15) % 360;
-            let g = (357.528 + 0.9856003 * epDay) * Math.PI / 180;
-            let q = (280.46 + 0.9856474 * epDay) * Math.PI / 180;
-            let L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * Math.PI / 180;
-            let dec = Math.asin(Math.sin(23.439*Math.PI/180) * Math.sin(L)) * 180 / Math.PI;
-            let gha = (ghaAries + (L*180/Math.PI) - 280) % 360; if(gha<0) gha+=360;
-            let lha = (gha + lon + 360) % 360;
-
-            let latR = lat*Math.PI/180, decR = dec*Math.PI/180, lhaR = lha*Math.PI/180;
-            let A = Math.tan(latR)/Math.tan(lhaR);
-            let nameA = (lha > 90 && lha < 270) ? document.getElementById('latDir').value : (document.getElementById('latDir').value==='N'?'S':'N');
-            let B = Math.tan(decR)/Math.sin(lhaR);
-            let nameB = dec >= 0 ? 'N' : 'S';
-
-            let valC = (nameA==='N'?A:-A) + (nameB==='N'?B:-B);
-            let nameC = valC >= 0 ? 'N' : 'S';
-            let az = Math.atan(1/(Math.abs(valC)*Math.cos(latR)))*180/Math.PI;
-            let zn = (nameC==='N') ? (lha>180?az:360-az) : (lha>180?180-az:180+az);
-            zn = (zn+360)%360;
-
-            document.getElementById('outTrackObject').innerText = "SUN";
-            document.getElementById('outZn').innerText = zn.toFixed(1) + "° True";
             
-            let gyroError = zn - (parseFloat(document.getElementById('brgGyro').value)||0);
-            let compassError = zn - (parseFloat(document.getElementById('brgStd').value)||0);
+            let targetDec = 0;
+            let targetGha = 0;
+
+            // Engine Decision: Check if selected target is a Star or Sun/Planets
+            if (starDb[targetObj]) {
+                let star = starDb[targetObj];
+                targetDec = star.dec;
+                targetGha = ghaAries + star.sha;
+            } else {
+                // Solar / Almanac Basics Algorithm for Sun
+                let g = (357.528 + 0.9856003 * epDay) * Math.PI / 180;
+                let q = (280.46 + 0.9856474 * epDay) * Math.PI / 180;
+                let L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * Math.PI / 180;
+                targetDec = Math.asin(Math.sin(23.439*Math.PI/180) * Math.sin(L)) * 180 / Math.PI;
+                let ghaSun = (ghaAries + (L*180/Math.PI) - 280) % 360; 
+                if(ghaSun < 0) ghaSun += 360;
+                targetGha = ghaSun;
+            }
+
+            let results = solveZnAndHc(lat, lon, targetDec, targetGha);
+
+            document.getElementById('outTrackObject').innerText = targetObj.toUpperCase();
+            document.getElementById('outZn').innerText = results.zn.toFixed(1) + "° True";
+            
+            let gyroError = results.zn - (parseFloat(document.getElementById('brgGyro').value)||0);
+            let compassError = results.zn - (parseFloat(document.getElementById('brgStd').value)||0);
+            
             document.getElementById('outGyroErr').innerText = gyroError.toFixed(1) + "°";
             document.getElementById('outCompassErr').innerText = compassError.toFixed(1) + "°";
         }
