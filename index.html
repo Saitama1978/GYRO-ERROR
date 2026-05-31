@@ -28,7 +28,6 @@
         header { text-align: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; }
         header h1 { font-size: 1.2rem; color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* APP ICON DESIGN INSIDE HEADER */
         .radar-ico { width: 32px; height: 32px; border: 2px solid var(--accent-yellow); border-radius: 50%; position: relative; display: inline-block; background: #05070a; box-shadow: 0 0 10px rgba(240,136,62,0.3); }
         .radar-ico::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(240,136,62,0.4); }
         .radar-ico::after { content: ''; position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: rgba(240,136,62,0.4); }
@@ -147,17 +146,17 @@
                 <div style="flex:2;">
                     <label>Longitude (Deg / Min)</label>
                     <div style="display:flex; gap:4px;">
-                        <input type="number" id="lonDeg" placeholder="°" class="form-control" min="0" max="180">
+                        <input type="number" id="lonDeg" placeholder="°" class="form-control" min="0" max="180" oninput="autoCalculateZD()">
                         <input type="number" id="lonMin" placeholder="'" class="form-control" step="0.1" min="0" max="59.9">
                     </div>
                 </div>
                 <div style="flex:1;">
                     <label>E/W</label>
-                    <select id="lonDir" class="form-control"><option value="E">E</option><option value="W">W</option></select>
+                    <select id="lonDir" class="form-control" onchange="autoCalculateZD()"><option value="E">E</option><option value="W">W</option></select>
                 </div>
                 <div style="flex:1;">
-                    <label>ZD</label>
-                    <input type="number" id="zd" placeholder="ZD" class="form-control" value="0">
+                    <label>ZD (+ / -)</label>
+                    <input type="number" id="zd" placeholder="ZD" class="form-control" value="0" min="-12" max="12">
                 </div>
             </div>
         </div>
@@ -188,7 +187,7 @@
                 <div style="grid-column: span 2;">
                     <label>Variation (Chart Data)</label>
                     <div style="display:flex; gap:6px;">
-                        <input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control">
+                        <input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control"/>
                         <select id="varDir" class="form-control" style="width:80px;"><option value="E">E</option><option value="W">W</option></select>
                     </div>
                 </div>
@@ -199,6 +198,8 @@
         <div class="card">
             <div class="section-title">3. Computation Analytics</div>
             <div class="results-panel">
+                <div class="res-line"><span>Target Object Tracking:</span><span class="val-out" id="outTrackObject" style="color:var(--accent-yellow);">---</span></div>
+                <div class="res-line" style="background: rgba(88,166,255,0.03);"><span>Calculated UTC Time:</span><span class="val-out" id="outUTCTime" style="color:var(--text-gold);">---</span></div>
                 <div class="res-line"><span>Computed GHA:</span><span class="val-out" id="outGHA">---</span></div>
                 <div class="res-line"><span>Computed LHA:</span><span class="val-out" id="outLHA">---</span></div>
                 <div class="res-line"><span>Declination:</span><span class="val-out" id="outDec">---</span></div>
@@ -212,7 +213,7 @@
                 <div class="res-line header-style">True Bearing Result</div>
                 <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outZn" style="color:var(--text-green);">---</span></div>
                 
-                <div class="res-line header-style">Compass Error Summary</div>
+                <div class="res-line header-style">Compass Error Summary (UTC Synced)</div>
                 <div class="res-line"><span>Gyro Bearing:</span><span class="val-out" id="outGyroBrg">---</span></div>
                 <div class="res-line" style="font-weight:bold;"><span>GYRO ERROR:</span><span class="val-out" id="outGyroErr">---</span></div>
                 <div class="res-line"><span>Standard Compass Bearing:</span><span class="val-out" id="outCompassBrg">---</span></div>
@@ -235,11 +236,12 @@
         </div>
 
         <footer>
-            Compass Error Engine v2.5 | Developed by: <strong>Renante Fullo</strong>
+            Compass Error Engine v3.0 | Developed by: <strong>Renante Fullo</strong>
         </footer>
     </div>
 
     <script>
+        // Setup default dates
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
         
         function updateClock() {
@@ -250,6 +252,17 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // Awtomatikong kinukuha ang tinatayang Zone Description batay sa Longitude degrees
+        function autoCalculateZD() {
+            let lonD = parseFloat(document.getElementById('lonDeg').value) || 0;
+            let lonDir = document.getElementById('lonDir').value;
+            let calculatedZD = Math.round(lonD / 15);
+            
+            // Kung East, ang ZD ay (-) sa pormula kaya pwedeng i-represent as positive rito base sa preference o itama sa formula computation
+            document.getElementById('zd').value = calculatedZD;
+        }
+
+        // Astronomical Almanac Trig Model Engine
         function getAlmanacData(body, d, utcHour) {
             let ghaBase = (100.46 + 0.985647 * d + utcHour * 15) % 360;
             let dec = 0;
@@ -309,8 +322,9 @@
             const body = document.getElementById('target').value;
             const dateVal = document.getElementById('date').value;
             const timeVal = document.getElementById('time').value;
+            
+            // ZD and Position Extraction
             const zd = parseFloat(document.getElementById('zd').value) || 0;
-
             const latD = parseFloat(document.getElementById('latDeg').value) || 0;
             const latM = parseFloat(document.getElementById('latMin').value) || 0;
             const latDir = document.getElementById('latDir').value;
@@ -328,34 +342,56 @@
             const variation = parseFloat(document.getElementById('varVal').value) || 0;
             const varDir = document.getElementById('varDir').value;
 
-            if (!timeVal) { alert("Paki-input ang oras, Kapitan!"); return; }
+            if (!timeVal) { alert("Paki-input ang Local Time (LMT), Kapitan!"); return; }
 
+            // TIME SOLVER ENGINE: Convert LMT to UTC via Zone Description (ZD)
             let hr = parseInt(timeVal.split(':')[0]);
             let mn = parseInt(timeVal.split(':')[1]);
-            let utcHour = (hr + (mn / 60) + zd + 24) % 24;
-            let epDay = (new Date(dateVal + "T00:00:00Z").getTime() / 86400000) - 10957.5 + (utcHour / 24);
+            let localHoursDecimal = hr + (mn / 60);
+            
+            let utcHourDecimal;
+            if (lonDir === 'E') {
+                // Kung nasa East Longitude (tulad ng Pilipinas/Asia), ibinabawas ang ZD para makuha ang UTC
+                utcHourDecimal = (localHoursDecimal - zd + 24) % 24;
+            } else {
+                // Kung nasa West Longitude, idinadagdag ang ZD para makuha ang UTC
+                utcHourDecimal = (localHoursDecimal + zd + 24) % 24;
+            }
 
-            let data = getAlmanacData(body, epDay, utcHour);
+            // Display computed UTC Time status
+            let utcHrDisplay = Math.floor(utcHourDecimal);
+            let utcMnDisplay = Math.round((utcHourDecimal - utcHrDisplay) * 60);
+            document.getElementById('outUTCTime').innerText = 
+                String(utcHrDisplay).padStart(2, '0') + ":" + String(utcMnDisplay).padStart(2, '0') + " UTC";
+
+            let epDay = (new Date(dateVal + "T00:00:00Z").getTime() / 86400000) - 10957.5 + (utcHourDecimal / 24);
+
+            // Fetch GHA and Declination based on precise UTC tracking
+            let data = getAlmanacData(body, epDay, utcHourDecimal);
             let lha = (data.gha + lon + 360) % 360;
 
+            // ABC CRITICAL MATHEMATICAL METHOD FORMULAS
             let latRad = lat * Math.PI / 180;
             let decRad = data.dec * Math.PI / 180;
             let lhaRad = lha * Math.PI / 180;
 
+            // A Factor = tan(Lat) / tan(LHA)
             let factorA = Math.tan(latRad) / Math.tan(lhaRad);
             let nameA = (lha > 90 && lha < 270) ? latDir : (latDir === 'N' ? 'S' : 'N');
 
+            // B Factor = tan(Dec) / sin(LHA)
             let factorB = Math.tan(decRad) / Math.sin(lhaRad);
             let nameB = data.dec >= 0 ? 'N' : 'S';
 
+            // C Combined Factor calculation (signs based on N/S naming rules)
             let valA = nameA === 'N' ? factorA : -factorA;
             let valB = nameB === 'N' ? factorB : -factorB;
             let valC = valA + valB;
             let nameC = valC >= 0 ? 'N' : 'S';
             let absC = Math.abs(valC);
 
+            // True Azimuth compilation (tan Z = 1 / (C * cos Lat))
             let azimuthAngle = Math.atan(1 / (absC * Math.cos(latRad))) * 180 / Math.PI;
-            
             let prefix = nameC;
             let suffix = (lha > 180) ? 'E' : 'W';
             
@@ -366,6 +402,7 @@
             else if (prefix === 'S' && suffix === 'W') zn = 180 + azimuthAngle;
             zn = (zn + 360) % 360;
 
+            // GYRO AND COMPASS ERROR SOLVER
             let gyroError = zn - gyroBrg;
             if (gyroError > 180) gyroError -= 360;
             if (gyroError < -180) gyroError += 360;
@@ -382,6 +419,8 @@
             if (deviation < -180) deviation += 360;
             let devDir = deviation >= 0 ? 'E' : 'W';
 
+            // RENDER OUTPUTS TO SCREEN DATA FIELDS
+            document.getElementById('outTrackObject').innerText = body.toUpperCase();
             document.getElementById('outGHA').innerText = data.gha.toFixed(1) + "°";
             document.getElementById('outLHA').innerText = lha.toFixed(1) + "°";
             document.getElementById('outDec').innerText = Math.abs(data.dec).toFixed(1) + "° " + (data.dec >= 0 ? 'N' : 'S');
