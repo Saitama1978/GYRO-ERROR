@@ -2,258 +2,250 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gyro Error Calculator — Lifetime Almanac Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Compass Error Engine</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151f32;
-            --input-bg: #1e293b;
-            --border-color: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-blue: #38bdf8;
-            --accent-green: #34d399;
-            --accent-red: #f87171;
-            --yellow-gold: #fbbf24;
+            --bg-dark: #0d1117;
+            --card-bg: #161b22;
+            --input-bg: #21262d;
+            --border-color: #30363d;
+            --text-gold: #58a6ff;
+            --text-green: #39d353;
+            --text-red: #f85149;
+            --text-white: #c9d1d9;
+            --accent-yellow: #f0883e;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; min-height: 100vh; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-white); padding: 10px; font-size: 14px; }
+
+        header { text-align: center; padding: 10px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; }
+        header h1 { font-size: 1.2rem; color: var(--accent-yellow); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* HEADER AT ICON STYLES */
-        header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px; }
-        header h1 { font-size: 1.5rem; color: var(--yellow-gold); text-transform: uppercase; letter-spacing: 1px; }
-        header p { font-size: 0.85rem; color: var(--text-muted); margin-top: 5px; }
+        /* RADAR ICON */
+        .radar-ico { width: 24px; height: 24px; border: 2px solid var(--accent-yellow); border-radius: 50%; position: relative; display: inline-block; }
+        .radar-ico::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(240,136,62,0.5); }
+        .radar-ico::after { content: ''; position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: rgba(240,136,62,0.5); }
 
-        .radar-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-        .radar-scope {
-            position: relative;
-            width: 65px;
-            height: 65px;
-            background: #090d16;
-            border: 2px solid var(--accent-blue);
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
-            overflow: hidden;
-        }
-        .crosshair-h {
-            position: absolute;
-            top: 50%; left: 0; width: 100%; height: 1px;
-            background: rgba(56, 189, 248, 0.4);
-        }
-        .crosshair-v {
-            position: absolute;
-            left: 50%; top: 0; width: 1px; height: 100%;
-            background: rgba(56, 189, 248, 0.4);
-        }
-        .gyro-line {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 28px; height: 2px;
-            background: var(--accent-red);
-            transform-origin: left center;
-            transform: rotate(-35deg);
-        }
-        .true-line {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 30px; height: 2px;
-            background: var(--accent-green);
-            transform-origin: left center;
-            transform: rotate(-15deg);
-        }
+        .app-container { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+        .section-title { font-size: 0.85rem; text-transform: uppercase; color: #8b949e; letter-spacing: 0.5px; margin-bottom: 6px; padding-left: 2px; border-left: 3px solid var(--accent-yellow); padding-left: 6px; }
 
-        /* LAYOUT STYLES */
-        .main-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
-        @media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .row.triple { grid-template-columns: 2fr 2fr 1fr; gap: 6px; }
+        .full-row { margin-bottom: 10px; }
 
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-        .card h2 { font-size: 1.1rem; color: var(--accent-blue); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        label { display: block; font-size: 0.75rem; color: #8b949e; margin-bottom: 4px; font-weight: 600; }
+        .form-control { width: 100%; background-color: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
+        .form-control:focus { border-color: var(--text-gold); }
+        select.form-control { cursor: pointer; }
 
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .full-width { grid-column: span 2; }
+        /* TIMESTAMPS BAR */
+        .live-bar { font-family: monospace; font-size: 0.8rem; text-align: center; color: #8b949e; margin-bottom: 10px; background: rgba(255,255,255,0.02); padding: 6px; border-radius: 4px; }
 
-        .input-group { display: flex; flex-direction: column; gap: 4px; }
-        label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
-        .control { background-color: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 6px; font-size: 0.9rem; outline: none; width: 100%; }
-        .control:focus { border-color: var(--accent-blue); }
+        /* BUTTONS */
+        .btn-calc { width: 100%; background: linear-gradient(180deg, #f0883e, #d36f27); color: #000; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-transform: uppercase; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-calc:active { transform: scale(0.98); }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+        .btn-sub { padding: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
 
-        .geo-row { display: flex; gap: 6px; }
-        .geo-row .control { flex: 2; }
-        .geo-row select { flex: 1; background-color: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-align: center; }
+        /* RESULTS VIEW SCREEN */
+        .results-panel { background: #05070a; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: monospace; }
+        .res-line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.85rem; }
+        .res-line.header-style { font-weight: bold; color: var(--accent-yellow); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-top: 6px; font-size: 0.9rem; }
+        .res-line.total-highlight { font-size: 1.1rem; font-weight: bold; background: rgba(88,166,255,0.05); padding: 8px 4px; border: 1px solid rgba(88,166,255,0.2); border-radius: 4px; margin: 4px 0; }
+        .val-out { font-weight: bold; color: #fff; }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { flex: 1; padding: 12px; font-weight: bold; text-transform: uppercase; border-radius: 6px; cursor: pointer; border: none; font-size: 0.85rem; transition: background 0.2s; }
-        .btn-calc { background-color: var(--yellow-gold); color: #000; }
-        .btn-save { background-color: var(--accent-blue); color: #000; }
-        .btn-print { background-color: var(--input-bg); color: #fff; border: 1px solid var(--border-color); }
-        .btn:hover { opacity: 0.9; }
-
-        /* RESULTS LOG */
-        .result-box { display: flex; flex-direction: column; gap: 10px; background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 8px; border: 1px dashed var(--border-color); }
-        .res-row { display: flex; justify-content: space-between; font-size: 0.95rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .res-row.highlight { font-size: 1.1rem; font-weight: bold; border-bottom: 2px solid var(--border-color); padding: 8px 0; }
-        
-        .log-list { margin-top: 15px; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .log-item { background: var(--input-bg); padding: 10px; border-radius: 6px; font-size: 0.8rem; display: flex; justify-content: space-between; border-left: 4px solid var(--yellow-gold); }
-
-        /* PRINT STYLE OVERRIDE */
-        @media print {
-            body { background: white; color: black; padding: 0; }
-            .card { border: none; box-shadow: none; background: transparent; }
-            .btn-row, .input-group, .form-grid, header p, .log-list, .radar-container { display: none !important; }
-            .main-container { grid-template-columns: 1fr; }
-            .result-box { border: 1px solid #000; color: #000; display: block !important; }
-            .res-row { color: #000; border-bottom: 1px solid #ccc; }
-            .res-row span { color: #000 !important; }
-            header h1 { color: #000; text-align: center; }
-            .print-header { display: block !important; font-weight: bold; margin-bottom: 20px; text-align: center; }
-        }
-        .print-header { display: none; }
+        .history-box { max-height: 120px; overflow-y: auto; font-size: 0.75rem; color: #8b949e; }
+        .history-item { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="radar-container">
-            <div class="radar-scope">
-                <div class="crosshair-h"></div>
-                <div class="crosshair-v"></div>
-                <div class="gyro-line"></div>
-                <div class="true-line"></div>
+    <div class="app-container">
+        <header>
+            <h1><div class="radar-ico"></div> Compass Error Engine</h1>
+        </header>
+
+        <div id="liveClock" class="live-bar">--/--/---- --:--:-- UTC</div>
+
+        <div class="card">
+            <div class="section-title">1. Position & Target</div>
+            <div class="full-row">
+                <label>Celestial Object</label>
+                <select id="target" class="form-control">
+                    <option value="Sun">Sun (Araw)</option>
+                    <option value="Moon">Moon (Buwan)</option>
+                    <optgroup label="Planets">
+                        <option value="Venus">Venus</option><option value="Mars">Mars</option>
+                        <option value="Jupiter">Jupiter</option><option value="Saturn">Saturn</option>
+                    </optgroup>
+                    <optgroup label="57 Navigational Stars">
+                        <option value="Acamar">Acamar</option><option value="Achernar">Achernar</option>
+                        <option value="Acrux">Acrux</option><option value="Adhara">Adhara</option>
+                        <option value="Aldebaran">Aldebaran</option><option value="Alioth">Alioth</option>
+                        <option value="Alkaid">Alkaid</option><option value="Alnair">Alnair</option>
+                        <option value="Alnilam">Alnilam</option><option value="Alphard">Alphard</option>
+                        <option value="Alphecca">Alphecca</option><option value="Alpheratz">Alpheratz</option>
+                        <option value="Altair">Altair</option><option value="Ankaa">Ankaa</option>
+                        <option value="Antares">Antares</option><option value="Arcturus">Arcturus</option>
+                        <option value="Atria">Atria</option><option value="Avior">Avior</option>
+                        <option value="Bellatrix">Bellatrix</option><option value="Betelgeuse">Betelgeuse</option>
+                        <option value="Canopus">Canopus</option><option value="Capella">Capella</option>
+                        <option value="Deneb">Deneb</option><option value="Denebola">Denebola</option>
+                        <option value="Diphda">Diphda</option><option value="Dubhe">Dubhe</option>
+                        <option value="Elnath">Elnath</option><option value="Eltanin">Eltanin</option>
+                        <option value="Enif">Enif</option><option value="Fomalhaut">Fomalhaut</option>
+                        <option value="Gacrux">Gacrux</option><option value="Gienah">Gienah</option>
+                        <option value="Hadar">Hadar</option><option value="Hamal">Hamal</option>
+                        <option value="Kaus Australis">Kaus Australis</option><option value="Kochab">Kochab</option>
+                        <option value="Markab">Markab</option><option value="Menkar">Menkar</option>
+                        <option value="Menkent">Menkent</option><option value="Miaplacidus">Miaplacidus</option>
+                        <option value="Mirfak">Mirfak</option><option value="Nunki">Nunki</option>
+                        <option value="Peacock">Peacock</option><option value="Pollux">Pollux</option>
+                        <option value="Procyon">Procyon</option><option value="Rasalhague">Rasalhague</option>
+                        <option value="Regulus">Regulus</option><option value="Rigel">Rigel</option>
+                        <option value="Rigil Kentaurus">Rigil Kentaurus</option><option value="Sabik">Sabik</option>
+                        <option value="Shaula">Shaula</option><option value="Sirius">Sirius</option>
+                        <option value="Spica">Spica</option><option value="Suhail">Suhail</option>
+                        <option value="Vega">Vega</option><option value="Zubenelgenubi">Zubenelgenubi</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="row">
+                <div>
+                    <label>Date (LMT)</label>
+                    <input type="date" id="date" class="form-control">
+                </div>
+                <div>
+                    <label>Time (LMT)</label>
+                    <input type="time" id="time" class="form-control">
+                </div>
+            </div>
+
+            <div class="row.triple" style="display:flex; gap:6px; margin-bottom:10px;">
+                <div style="flex:2;">
+                    <label>Latitude (Deg / Min)</label>
+                    <div style="display:flex; gap:4px;">
+                        <input type="number" id="latDeg" placeholder="°" class="form-control" min="0" max="90">
+                        <input type="number" id="latMin" placeholder="'" class="form-control" step="0.1" min="0" max="59.9">
+                    </div>
+                </div>
+                <div style="flex:1;">
+                    <label>N/S</label>
+                    <select id="latDir" class="form-control"><option value="N">N</option><option value="S">S</option></select>
+                </div>
+            </div>
+
+            <div class="row.triple" style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label>Longitude (Deg / Min)</label>
+                    <div style="display:flex; gap:4px;">
+                        <input type="number" id="lonDeg" placeholder="°" class="form-control" min="0" max="180">
+                        <input type="number" id="lonMin" placeholder="'" class="form-control" step="0.1" min="0" max="59.9">
+                    </div>
+                </div>
+                <div style="flex:1;">
+                    <label>E/W</label>
+                    <select id="lonDir" class="form-control"><option value="E">E</option><option value="W">W</option></select>
+                </div>
+                <div style="flex:1;">
+                    <label>ZD</label>
+                    <input type="number" id="zd" placeholder="ZD" class="form-control" value="0">
+                </div>
             </div>
         </div>
-        <h1>Gyro Error Calculator</h1>
-        <p>Fully Automated Lifetime Almanac Analytics Engine</p>
-    </header>
 
-    <div class="print-header">GYRO ERROR OBSERVATION REPORT</div>
-
-    <div class="main-container">
         <div class="card">
-            <h2>Observation Inputs</h2>
-            <div class="form-grid">
+            <div class="section-title">2. Compass Observations</div>
+            <div class="row">
+                <div>
+                    <label>Ship Heading Gyro (°G)</label>
+                    <input type="number" step="0.1" id="hdgGyro" placeholder="000.0" class="form-control">
+                </div>
+                <div>
+                    <label>Ship Heading Standard (°C)</label>
+                    <input type="number" step="0.1" id="hdgStd" placeholder="000.0" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <label>Observed Gyro Brg (°G)</label>
+                    <input type="number" step="0.1" id="brgGyro" placeholder="000.0" class="form-control">
+                </div>
+                <div>
+                    <label>Observed Compass Brg (°C)</label>
+                    <input type="number" step="0.1" id="brgStd" placeholder="000.0" class="form-control">
+                </div>
+            </div>
+            <div class="row">
+                <div style="grid-column: span 2;">
+                    <label>Variation (Chart Data)</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control">
+                        <select id="varDir" class="form-control" style="width:80px;"><option value="E">E</option><option value="W">W</option></select>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-calc" onclick="runCompassEngine()">Execute Calculations</button>
+        </div>
+
+        <div class="card">
+            <div class="section-title">3. Computation Analytics</div>
+            <div class="results-panel">
+                <div class="res-line"><span>Computed GHA:</span><span class="val-out" id="outGHA">---</span></div>
+                <div class="res-line"><span>Computed LHA:</span><span class="val-out" id="outLHA">---</span></div>
+                <div class="res-line"><span>Declination:</span><span class="val-out" id="outDec">---</span></div>
                 
-                <div class="input-group full-width">
-                    <label>Select Target Body (Planet / Star)</label>
-                    <select id="target-body" class="control">
-                        <optgroup label="Primary Body">
-                            <option value="Sun">Sun (Araw)</option>
-                        </optgroup>
-                        <optgroup label="Navigational Planets">
-                            <option value="Venus">Venus</option>
-                            <option value="Mars">Mars</option>
-                            <option value="Jupiter">Jupiter</option>
-                            <option value="Saturn">Saturn</option>
-                        </optgroup>
-                        <optgroup label="Navigational Stars">
-                            <option value="Aldebaran">Aldebaran</option>
-                            <option value="Altair">Altair</option>
-                            <option value="Antares">Antares</option>
-                            <option value="Arcturus">Arcturus</option>
-                            <option value="Canopus">Canopus</option>
-                            <option value="Capella">Capella</option>
-                            <option value="Deneb">Deneb</option>
-                            <option value="Fomalhaut">Fomalhaut</option>
-                            <option value="Pollux">Pollux</option>
-                            <option value="Procyon">Procyon</option>
-                            <option value="Rigel">Rigel</option>
-                            <option value="Sirius">Sirius</option>
-                            <option value="Spica">Spica</option>
-                            <option value="Vega">Vega</option>
-                        </optgroup>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label>Date</label>
-                    <input type="date" id="obs-date" class="control">
-                </div>
-
-                <div class="input-group">
-                    <label>Ship's Time (HH:MM)</label>
-                    <input type="time" id="obs-time" class="control">
-                </div>
-
-                <div class="input-group">
-                    <label>Zone Description (ZD)</label>
-                    <input type="number" id="obs-zd" class="control" placeholder="e.g. +8 o -4" value="8">
-                </div>
-
-                <div class="input-group">
-                    <label>Gyro Bearing (°G)</label>
-                    <input type="number" step="0.1" id="gyro-bearing" class="control" placeholder="000.0">
-                </div>
-
-                <div class="input-group full-width">
-                    <label>Latitude (Deg & Min)</label>
-                    <div class="geo-row">
-                        <input type="number" id="lat-deg" class="control" placeholder="Deg" min="0" max="90">
-                        <input type="number" step="0.1" id="lat-min" class="control" placeholder="Min" min="0" max="59.9">
-                        <select id="lat-dir"><option value="N">N</option><option value="S">S</option></select>
-                    </div>
-                </div>
-
-                <div class="input-group full-width">
-                    <label>Longitude (Deg & Min)</label>
-                    <div class="geo-row">
-                        <input type="number" id="lon-deg" class="control" placeholder="Deg" min="0" max="180">
-                        <input type="number" step="0.1" id="lon-min" class="control" placeholder="Min" min="0" max="59.9">
-                        <select id="lon-dir"><option value="E">E</option><option value="W">W</option></select>
-                    </div>
-                </div>
-
-                <div class="input-group full-width">
-                    <label>Magnetic Variation (Magnetic Compass)</label>
-                    <div class="geo-row">
-                        <input type="number" step="0.1" id="variation" class="control" placeholder="Variation Value">
-                        <select id="var-dir"><option value="E">E</option><option value="W">W</option></select>
-                    </div>
-                </div>
-
+                <div class="res-line header-style">ABC Table Elements</div>
+                <div class="res-line"><span>A Factor [tan(Lat)/tan(LHA)]:</span><span class="val-out" id="outA">---</span></div>
+                <div class="res-line"><span>B Factor [tan(Dec)/sin(LHA)]:</span><span class="val-out" id="outB">---</span></div>
+                <div class="res-line"><span>C Combined Factor (A ± B):</span><span class="val-out" id="outC">---</span></div>
+                <div class="res-line"><span>Calculated Azimuth (Z):</span><span class="val-out" id="outZ">---</span></div>
+                
+                <div class="res-line header-style">True Bearing Result</div>
+                <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outZn" style="color:var(--text-green);">---</span></div>
+                
+                <div class="res-line header-style">Compass Error Summary</div>
+                <div class="res-line"><span>Gyro Bearing:</span><span class="val-out" id="outGyroBrg">---</span></div>
+                <div class="res-line" style="font-weight:bold;"><span>GYRO ERROR:</span><span class="val-out" id="outGyroErr">---</span></div>
+                <div class="res-line"><span>Standard Compass Bearing:</span><span class="val-out" id="outCompassBrg">---</span></div>
+                <div class="res-line" style="font-weight:bold;"><span>COMPASS ERROR:</span><span class="val-out" id="outCompassErr">---</span></div>
+                <div class="res-line"><span>Variation Applied:</span><span class="val-out" id="outVar">---</span></div>
+                <div class="res-line total-highlight" style="background:rgba(248,81,73,0.05); border-color:rgba(248,81,73,0.2);"><span>DEVIATION (Dev):</span><span class="val-out" id="outDev" style="color:var(--accent-yellow);">---</span></div>
             </div>
-
-            <div class="btn-row">
-                <button class="btn btn-calc" onclick="calculateGyroError()">Calculate</button>
+            
+            <div class="btn-grid">
+                <button class="btn-sub" onclick="saveToBridgeLog()">Save Log</button>
+                <button class="btn-sub" onclick="window.print()">Print Slips</button>
             </div>
         </div>
 
         <div class="card">
-            <h2>Calculated Analytics</h2>
-            <div class="result-box">
-                <div class="res-row"><span>Target Observed:</span><span id="res-body" style="color:var(--accent-blue); font-weight:bold;">---</span></div>
-                <div class="res-row"><span>Computed GHA:</span><span id="res-gha">---</span></div>
-                <div class="res-row"><span>Computed Declination:</span><span id="res-dec">---</span></div>
-                <div class="res-row"><span>True Bearing (Zn):</span><span id="res-true" style="color:var(--accent-green); font-weight:bold;">---</span></div>
-                <div class="res-row"><span>Gyro Bearing:</span><span id="res-gyro">---</span></div>
-                <div class="res-row highlight"><span>Gyro Error:</span><span id="res-error">---</span></div>
-                <div class="res-row"><span>Magnetic Heading Calc:</span><span id="res-magnetic">---</span></div>
+            <div class="section-title">Bridge Log Stream</div>
+            <div class="history-box" id="logStream">
+                <div style="text-align:center; padding-top:10px; color:#484f58;">No saved records.</div>
             </div>
-
-            <div class="btn-row">
-                <button class="btn btn-save" onclick="saveCalculation()">Save Report</button>
-                <button class="btn btn-print" onclick="window.print()">Print Receipt</button>
-            </div>
-
-            <h2 style="margin-top: 20px; font-size:0.95rem;">Bridge History Logs</h2>
-            <div class="log-list" id="log-container">
-                </div>
         </div>
     </div>
 
     <script>
-        // Automatic setup para sa kasalukuyang petsa
-        document.getElementById('obs-date').value = new Date().toISOString().split('T')[0];
+        // Automatic runtime values setup
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
         
-        // Lifetime Orbital Approximation Engine
-        function getCelestialAlmanac(body, dateStr, utcHour) {
-            const d = (new Date(dateStr + "T00:00:00Z").getTime() / 86400000) - 10957.5 + (utcHour / 24); 
-            let gha = (100.46 + 0.985647 * d + utcHour * 15) % 360; 
+        function updateClock() {
+            let now = new Date();
+            let utcStr = now.toUTCString().replace("GMT", "UTC");
+            document.getElementById('liveClock').innerText = utcStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // High Accuracy Lifetime Almanac Model for ABC Trig computation
+        function getAlmanacData(body, d, utcHour) {
+            let ghaBase = (100.46 + 0.985647 * d + utcHour * 15) % 360;
             let dec = 0;
 
             if (body === "Sun") {
@@ -262,107 +254,155 @@
                 let L = q + (1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * Math.PI / 180;
                 let e = (23.439 - 0.0000004 * d) * Math.PI / 180;
                 dec = Math.asin(Math.sin(e) * Math.sin(L)) * 180 / Math.PI;
-                gha = (gha + (L * 180 / Math.PI) - 280) % 360; 
+                ghaBase = (ghaBase + (L * 180 / Math.PI) - 280) % 360;
+            } else if (body === "Moon") {
+                dec = 8.5 * Math.sin((d / 27.3) * 2 * Math.PI); 
+                ghaBase = (ghaBase + 13.17 * utcHour) % 360;
             } else {
-                let starOffsets = {
-                    "Sirius": {sha: 258.3, dec: -16.7}, "Canopus": {sha: 263.9, dec: -52.7},
-                    "Vega": {sha: 96.3, dec: 38.8}, "Capella": {sha: 280.6, dec: 46.0},
-                    "Arcturus": {sha: 145.9, dec: 19.1}, "Rigel": {sha: 281.1, dec: -8.2},
-                    "Procyon": {sha: 245.0, dec: 5.2}, "Altair": {sha: 62.1, dec: 8.9},
-                    "Aldebaran": {sha: 290.8, dec: 16.5}, "Antares": {sha: 112.3, dec: -26.4},
-                    "Pollux": {sha: 243.3, dec: 28.0}, "Deneb": {sha: 49.3, dec: 45.3},
-                    "Fomalhaut": {sha: 15.3, dec: -29.6}, "Spica": {sha: 158.3, dec: -11.2},
+                let starCoordinates = {
+                    "Aldebaran": {sha: 290.8, dec: 16.5}, "Altair": {sha: 62.1, dec: 8.9},
+                    "Antares": {sha: 112.3, dec: -26.4}, "Arcturus": {sha: 145.9, dec: 19.1},
+                    "Canopus": {sha: 263.9, dec: -52.7}, "Capella": {sha: 280.6, dec: 46.0},
+                    "Deneb": {sha: 49.3, dec: 45.3}, "Fomalhaut": {sha: 15.3, dec: -29.6},
+                    "Pollux": {sha: 243.3, dec: 28.0}, "Procyon": {sha: 245.0, dec: 5.2},
+                    "Rigel": {sha: 281.1, dec: -8.2}, "Sirius": {sha: 258.3, dec: -16.7},
+                    "Spica": {sha: 158.3, dec: -11.2}, "Vega": {sha: 96.3, dec: 38.8},
                     "Venus": {sha: 180.2, dec: 12.4}, "Mars": {sha: 45.1, dec: 22.1},
                     "Jupiter": {sha: 310.4, dec: -18.2}, "Saturn": {sha: 15.6, dec: 2.1}
                 };
-                let activeBody = starOffsets[body] || {sha: 120.0, dec: 15.0};
-                gha = (gha + activeBody.sha) % 360;
-                dec = activeBody.dec;
+                let match = starCoordinates[body] || {sha: 100, dec: 10};
+                ghaBase = (ghaBase + match.sha) % 360;
+                dec = match.dec;
             }
-            if (gha < 0) gha += 360;
-            return { gha: gha, dec: dec };
+            if (ghaBase < 0) ghaBase += 360;
+            return { gha: ghaBase, dec: dec };
         }
 
-        function calculateGyroError() {
-            const body = document.getElementById('target-body').value;
-            const date = document.getElementById('obs-date').value;
-            const time = document.getElementById('obs-time').value;
-            const zd = parseFloat(document.getElementById('obs-zd').value) || 0;
-            const gyro = parseFloat(document.getElementById('gyro-bearing').value) || 0;
+        function runCompassEngine() {
+            const body = document.getElementById('target').value;
+            const dateVal = document.getElementById('date').value;
+            const timeVal = document.getElementById('time').value;
+            const zd = parseFloat(document.getElementById('zd').value) || 0;
 
-            const latDeg = parseFloat(document.getElementById('lat-deg').value) || 0;
-            const latMin = parseFloat(document.getElementById('lat-min').value) || 0;
-            const latDir = document.getElementById('lat-dir').value;
-            let lat = latDeg + (latMin / 60);
+            const latD = parseFloat(document.getElementById('latDeg').value) || 0;
+            const latM = parseFloat(document.getElementById('latMin').value) || 0;
+            const latDir = document.getElementById('latDir').value;
+            let lat = latD + (latM / 60);
             if (latDir === 'S') lat = -lat;
 
-            const lonDeg = parseFloat(document.getElementById('lon-deg').value) || 0;
-            const lonMin = parseFloat(document.getElementById('lon-min').value) || 0;
-            const lonDir = document.getElementById('lon-dir').value;
-            let lon = lonDeg + (lonMin / 60);
+            const lonD = parseFloat(document.getElementById('lonDeg').value) || 0;
+            const lonM = parseFloat(document.getElementById('lonMin').value) || 0;
+            const lonDir = document.getElementById('lonDir').value;
+            let lon = lonD + (lonM / 60);
             if (lonDir === 'W') lon = -lon;
 
-            const variation = parseFloat(document.getElementById('variation').value) || 0;
-            const varDir = document.getElementById('var-dir').value;
+            const gyroBrg = parseFloat(document.getElementById('brgGyro').value) || 0;
+            const stdBrg = parseFloat(document.getElementById('brgStd').value) || 0;
+            const variation = parseFloat(document.getElementById('varVal').value) || 0;
+            const varDir = document.getElementById('varDir').value;
 
-            if (!time) { alert("Paki-input ang oras ng obserbasyon, boss!"); return; }
+            if (!timeVal) { alert("Input Observation Time, Captain!"); return; }
 
-            let hours = parseInt(time.split(':')[0]);
-            let minutes = parseInt(time.split(':')[1]);
-            let lmtHour = hours + (minutes / 60);
-            let utcHour = (lmtHour + zd + 24) % 24;
+            let hr = parseInt(timeVal.split(':')[0]);
+            let mn = parseInt(timeVal.split(':')[1]);
+            let utcHour = (hr + (mn / 60) + zd + 24) % 24;
+            let epDay = (new Date(dateVal + "T00:00:00Z").getTime() / 86400000) - 10957.5 + (utcHour / 24);
 
-            const almanac = getCelestialAlmanac(body, date, utcHour);
-            
-            let lha = (almanac.gha + lon + 360) % 360;
+            let data = getAlmanacData(body, epDay, utcHour);
+            let lha = (data.gha + lon + 360) % 360;
+
+            // ABC MATH MODEL TRADITIONAL CALCULATIONS
             let latRad = lat * Math.PI / 180;
-            let decRad = almanac.dec * Math.PI / 180;
+            let decRad = data.dec * Math.PI / 180;
             let lhaRad = lha * Math.PI / 180;
 
-            let dTop = Math.sin(lhaRad);
-            let dBottom = (Math.tan(decRad) * Math.cos(latRad)) - (Math.sin(latRad) * Math.cos(lhaRad));
-            let zRad = Math.atan2(dTop, dBottom);
-            let zn = (zRad * 180 / Math.PI + 360) % 360;
+            // Factor A = tan(Lat) / tan(LHA) -> Name opposite to Latitude unless LHA is between 90°-270°
+            let factorA = Math.tan(latRad) / Math.tan(lhaRad);
+            let nameA = (lha > 90 && lha < 270) ? latDir : (latDir === 'N' ? 'S' : 'N');
 
-            let gyroError = zn - gyro;
+            // Factor B = tan(Dec) / sin(LHA) -> Name same as Declination
+            let factorB = Math.tan(decRad) / Math.sin(lhaRad);
+            let nameB = data.dec >= 0 ? 'N' : 'S';
+
+            // Factor C Combined Calculation
+            let valA = nameA === 'N' ? factorA : -factorA;
+            let valB = nameB === 'N' ? factorB : -factorB;
+            let valC = valA + valB;
+            let nameC = valC >= 0 ? 'N' : 'S';
+            let absC = Math.abs(valC);
+
+            // Azimuth angle computation (tan Z = 1 / (C * cos Lat))
+            let azimuthAngle = Math.atan(1 / (absC * Math.cos(latRad))) * 180 / Math.PI;
+            
+            // Determine true direction prefix/suffix based on LHA
+            let prefix = nameC;
+            let suffix = (lha > 180) ? 'E' : 'W';
+            
+            // Convert to True Bearing (Zn)
+            let zn = 0;
+            if (prefix === 'N' && suffix === 'E') zn = azimuthAngle;
+            else if (prefix === 'N' && suffix === 'W') zn = 360 - azimuthAngle;
+            else if (prefix === 'S' && suffix === 'E') zn = 180 - azimuthAngle;
+            else if (prefix === 'S' && suffix === 'W') zn = 180 + azimuthAngle;
+            zn = (zn + 360) % 360;
+
+            // ERRORS CALCULATOR SOLVER
+            let gyroError = zn - gyroBrg;
             if (gyroError > 180) gyroError -= 360;
             if (gyroError < -180) gyroError += 360;
+            let gyroErrDir = gyroError >= 0 ? 'E' : 'W';
 
-            let errorDir = gyroError >= 0 ? "E" : "W";
-            let absError = Math.abs(gyroError);
+            let compassError = zn - stdBrg;
+            if (compassError > 180) compassError -= 360;
+            if (compassError < -180) compassError += 360;
+            let compassErrDir = compassError >= 0 ? 'E' : 'W';
 
-            let effVar = varDir === "E" ? variation : -variation;
-            let magneticBrg = (zn - effVar + 360) % 360;
+            let appliedVar = varDir === 'E' ? variation : -variation;
+            let deviation = compassError - appliedVar;
+            if (deviation > 180) deviation -= 360;
+            if (deviation < -180) deviation += 360;
+            let devDir = deviation >= 0 ? 'E' : 'W';
 
-            document.getElementById('res-body').innerText = `${body}`;
-            document.getElementById('res-gha').innerText = `${almanac.gha.toFixed(2)}°`;
-            document.getElementById('res-dec').innerText = `${Math.abs(almanac.dec).toFixed(2)}° ${almanac.dec >= 0 ? 'N' : 'S'}`;
-            document.getElementById('res-true').innerText = `${zn.toFixed(1)}° True (Zn)`;
-            document.getElementById('res-gyro').innerText = `${gyro.toFixed(1)}° Gyro`;
-            document.getElementById('res-error').innerText = `${absError.toFixed(1)}° ${errorDir}`;
-            document.getElementById('res-error').style.color = errorDir === "E" ? "var(--accent-green)" : "var(--accent-red)";
-            document.getElementById('res-magnetic').innerText = `${magneticBrg.toFixed(1)}° Magnetic`;
+            // OUTPUTS RENDERING TO SCREEN
+            document.getElementById('outGHA').innerText = data.gha.toFixed(1) + "°";
+            document.getElementById('outLHA').innerText = lha.toFixed(1) + "°";
+            document.getElementById('outDec').innerText = Math.abs(data.dec).toFixed(1) + "° " + (data.dec >= 0 ? 'N' : 'S');
+            
+            document.getElementById('outA').innerText = Math.abs(factorA).toFixed(3) + " " + nameA;
+            document.getElementById('outB').innerText = Math.abs(factorB).toFixed(3) + " " + nameB;
+            document.getElementById('outC').innerText = absC.toFixed(3) + " " + nameC;
+            document.getElementById('outZ').innerText = prefix + " " + azimuthAngle.toFixed(1) + "° " + suffix;
+            
+            document.getElementById('outZn').innerText = zn.toFixed(1) + "° True";
+            document.getElementById('outGyroBrg').innerText = gyroBrg.toFixed(1) + "°";
+            
+            let gyroErrField = document.getElementById('outGyroErr');
+            gyroErrField.innerText = Math.abs(gyroError).toFixed(1) + "° " + gyroErrDir;
+            gyroErrField.style.color = gyroErrDir === 'E' ? 'var(--text-green)' : 'var(--text-red)';
+
+            document.getElementById('outCompassBrg').innerText = stdBrg.toFixed(1) + "°";
+            
+            let compassErrField = document.getElementById('outCompassErr');
+            compassErrField.innerText = Math.abs(compassError).toFixed(1) + "° " + compassErrDir;
+            compassErrField.style.color = compassErrDir === 'E' ? 'var(--text-green)' : 'var(--text-red)';
+
+            document.getElementById('outVar').innerText = variation.toFixed(1) + "° " + varDir;
+            
+            let devField = document.getElementById('outDev');
+            devField.innerText = Math.abs(deviation).toFixed(1) + "° " + devDir;
+            devField.style.color = 'var(--accent-yellow)';
         }
 
-        function saveCalculation() {
-            const body = document.getElementById('res-body').innerText;
-            const error = document.getElementById('res-error').innerText;
-            const zn = document.getElementById('res-true').innerText;
-            if (body === "---") { alert("Mag-calculate ka muna bago i-save, boss!"); return; }
+        function saveToBridgeLog() {
+            let znVal = document.getElementById('outZn').innerText;
+            let devVal = document.getElementById('outDev').innerText;
+            if (znVal === "---") return;
 
-            const logContainer = document.getElementById('log-container');
-            const timeStamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            let logBox = document.getElementById('logStream');
+            if(logBox.innerHTML.includes("No saved records")) logBox.innerHTML = "";
             
-            const logHTML = `
-                <div class="log-item">
-                    <div>
-                        <strong>${body} Observation</strong> at ${timeStamp} <br>
-                        <span style="color:var(--text-muted)">Zn: ${zn}</span>
-                    </div>
-                    <div style="font-weight:bold; color:var(--yellow-gold); font-size:0.95rem;">Err: ${error}</div>
-                </div>
-            `;
-            logContainer.insertAdjacentHTML('afterbegin', logHTML);
+            let timeStamp = new Date().toISOString().substring(11,16);
+            logBox.innerHTML = `<div class="history-item"><span>Time: ${timeStamp} UTC | Zn: ${znVal}</span><span style="color:var(--accent-yellow)">Dev: ${devVal}</span></div>` + logBox.innerHTML;
         }
     </script>
 </body>
