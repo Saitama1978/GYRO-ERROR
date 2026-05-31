@@ -68,12 +68,27 @@
         .form-control { width: 100%; background-color: var(--input-bg); border: 1px solid var(--border-color); color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 0.9rem; outline: none; }
         .btn-calc { width: 100%; background: linear-gradient(180deg, #f0883e, #d36f27); color: #000; border: none; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-transform: uppercase; cursor: pointer; }
         
+        /* Export Actions Styling */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .btn-action { padding: 10px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-save { background-color: #238636; color: #fff; }
+        .btn-save:hover { background-color: #2ea043; }
+        .btn-print { background-color: #21262d; color: #c9d1d9; border: 1px solid var(--border-color); }
+        .btn-print:hover { background-color: #30363d; }
+
         .results-panel { background: #05070a; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: monospace; }
         .res-line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.85rem; }
         .res-line.total-highlight { font-size: 1.1rem; font-weight: bold; background: rgba(88,166,255,0.05); padding: 8px 4px; border: 1px solid rgba(88,166,255,0.2); border-radius: 4px; margin: 4px 0; }
         .val-out { font-weight: bold; color: #fff; }
         .math-header { font-size: 0.8rem; color: var(--accent-yellow); margin-top: 10px; font-weight: bold; text-transform: uppercase; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px;}
         footer { text-align: center; padding: 15px 0 5px 0; font-size: 0.75rem; color: #8b949e; border-top: 1px solid var(--border-color); margin-top: 15px; }
+
+        @media print {
+            body { background: white; color: black; }
+            .tab-container, .card:not(.results-panel), .dev-brand-card, header, footer, .action-grid { display: none !important; }
+            .results-panel { border: 1px solid #000; background: white; color: black; max-width: 100%; }
+            .val-out, .math-header { color: black !important; }
+        }
     </style>
 </head>
 <body>
@@ -142,11 +157,11 @@
         <div class="card">
             <div class="section-title">2. Compass Sighting Observations</div>
             <div class="row">
-                <div><label>Observed Gyro Brg (°G)</label><input type="number" step="0.1" id="brgGyro" placeholder="270.0" class="form-control"></div>
-                <div><label>Observed Compass Brg (°C)</label><input type="number" step="0.1" id="brgStd" placeholder="271.0" class="form-control"></div>
+                <div><label>Observed Gyro Brg (°G)</label><input type="number" step="0.1" id="brgGyro" placeholder="270.0" class="form-control" value="292.3"></div>
+                <div><label>Observed Compass Brg (°C)</label><input type="number" step="0.1" id="brgStd" placeholder="271.0" class="form-control" value="292.5"></div>
             </div>
             <div style="display:flex; gap:6px;">
-                <div style="flex:3;"><label>Variation (Chart Data)</label><input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control" value="4"></div>
+                <div style="flex:3;"><label>Variation (Chart Data)</label><input type="number" step="0.01" id="varVal" placeholder="0.0" class="form-control" value="1.93"></div>
                 <div style="flex:1;"><label>E/W</label><select id="varDir" class="form-control"><option value="E">E</option><option value="W" selected>W</option></select></div>
             </div>
             <button class="btn-calc" style="margin-top:12px;" onclick="runCompassEngine()">Execute Calculations</button>
@@ -154,7 +169,7 @@
 
         <div class="card">
             <div class="section-title">3. Computation Analytics</div>
-            <div class="results-panel">
+            <div class="results-panel" id="compassPrintArea">
                 <div class="res-line"><span>Target Object:</span><span class="val-out" id="outTrackObject">---</span></div>
                 <div class="res-line"><span>UTC Time:</span><span class="val-out" id="outUTCTime" style="color:var(--text-gold);">---</span></div>
                 
@@ -174,6 +189,11 @@
                 <div class="res-line"><span>GYRO ERROR (Zn - Gyro):</span><span class="val-out" id="outGyroErr">---</span></div>
                 <div class="res-line"><span>COMPASS ERROR (Zn - Compass):</span><span class="val-out" id="outCompassErr">---</span></div>
                 <div class="res-line" style="border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; margin-top:4px;"><span>DEVIATION (Error - Var):</span><span class="val-out" id="outDev" style="color:var(--accent-yellow);">---</span></div>
+            </div>
+            
+            <div class="action-grid">
+                <button class="btn-action btn-save" onclick="saveAsTxt('compass')">💾 Save Data (.txt)</button>
+                <button class="btn-action btn-print" onclick="window.print()">🖨️ Print Report</button>
             </div>
         </div>
     </div>
@@ -229,7 +249,7 @@
 
         <div class="card">
             <div class="section-title">3. Sighting Targets</div>
-            <div class="results-panel">
+            <div class="results-panel" id="starPrintArea">
                 <div class="res-line"><span>Object Selected:</span><span class="val-out" id="outStarName" style="color:var(--accent-yellow);">---</span></div>
                 <div class="res-line"><span>UTC Equivalent:</span><span class="val-out" id="outStarUTC">---</span></div>
                 <div class="res-line"><span>SHA Data:</span><span class="val-out" id="outStarSHA">---</span></div>
@@ -243,10 +263,15 @@
                 <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outStarZn" style="color:var(--text-green);">---</span></div>
                 <div class="res-line total-highlight" style="background:rgba(88,166,255,0.05);"><span>Altitude Angle (Hc):</span><span class="val-out" id="outStarHc" style="color:var(--text-gold);">---</span></div>
             </div>
+            
+            <div class="action-grid">
+                <button class="btn-action btn-save" onclick="saveAsTxt('star')">💾 Save Data (.txt)</button>
+                <button class="btn-action btn-print" onclick="window.print()">🖨️ Print Report</button>
+            </div>
         </div>
     </div>
 
-    <footer>Bridge Navigation Suite v4.7 | Powered by Renante Fullo</footer>
+    <footer>Bridge Navigation Suite v4.8 | Powered by Renante Fullo</footer>
 
     <script>
         const starDb = {
@@ -362,25 +387,17 @@
             let decR = dec * Math.PI / 180;
             let lhaR = lha * Math.PI / 180;
 
-            // Factor A = tan(Lat) / tan(LHA)
             let factorA = Math.tan(latR) / Math.tan(lhaR);
-            // Factor B = tan(Dec) / sin(LHA)
             let factorB = Math.tan(decR) / Math.sin(lhaR);
             
-            // Standard reduction logic rules
             let dirA = (lha > 90 && lha < 270) ? "N" : "S";
             let dirB = (dec >= 0) ? "N" : "S";
 
             let valA = factorA;
             let valB = factorB;
 
-            // Combined Factor C
             let factorC = 0;
-            if (dirA === dirB) {
-                factorC = valA + valB;
-            } else {
-                factorC = valA - valB;
-            }
+            if (dirA === dirB) { factorC = valA + valB; } else { factorC = valA - valB; }
 
             let sinHc = Math.sin(latR) * Math.sin(decR) + Math.cos(latR) * Math.cos(decR) * Math.cos(lhaR);
             let hc = Math.asin(sinHc) * 180 / Math.PI;
@@ -445,7 +462,6 @@
             let data = getBasicObjectData(targetObj, dateVal, utc);
             let res = runABCAlphaEngine(lat, lon, data.dec, data.gha);
 
-            // Display Live Steps to Analytics Panel
             document.getElementById('outTrackObject').innerText = targetObj.toUpperCase();
             document.getElementById('outGHA').innerText = res.gha.toFixed(1) + "°";
             document.getElementById('outLHA').innerText = res.lha.toFixed(1) + "°";
@@ -469,6 +485,89 @@
             document.getElementById('outGyroErr').innerText = formatError(gyroError);
             document.getElementById('outCompassErr').innerText = formatError(compassError);
             document.getElementById('outDev').innerText = formatError(deviation);
+        }
+
+        // ================= TEXT FILE SAVE SYSTEM GENERATOR =================
+        function saveAsTxt(type) {
+            let logText = "";
+            let filename = "";
+            let timestamp = new Date().toISOString().slice(0,19).replace("T"," ");
+
+            if (type === 'compass') {
+                let obj = document.getElementById('outTrackObject').innerText;
+                if(obj === "---") { alert("Pakisukat o execute muna ang calculation, boss!"); return; }
+                
+                filename = `CompassError_Report_${document.getElementById('date').value}.txt`;
+                logText = `==================================================\n` +
+                          `        BRIDGE NAVIGATION SUITE - REPORT          \n` +
+                          `           Developer: Renante Fullo               \n` +
+                          `==================================================\n` +
+                          `Log Created On : ${timestamp} UTC\n\n` +
+                          `[INPUT DATA DATASET]\n` +
+                          `Target Object  : ${obj}\n` +
+                          `Date (LMT)     : ${document.getElementById('date').value}\n` +
+                          `Time (LMT)     : ${document.getElementById('time').value} (ZD: ${document.getElementById('zd').value})\n` +
+                          `Latitude       : ${document.getElementById('latDeg').value}°${document.getElementById('latMin').value}' ${document.getElementById('latDir').value}\n` +
+                          `Longitude      : ${document.getElementById('lonDeg').value}°${document.getElementById('lonMin').value}' ${document.getElementById('lonDir').value}\n` +
+                          `Obs. Gyro Brg  : ${document.getElementById('brgGyro').value}°G\n` +
+                          `Obs. Std Brg   : ${document.getElementById('brgStd').value}°C\n` +
+                          `Chart Variation: ${document.getElementById('varVal').value}° ${document.getElementById('varDir').value}\n\n` +
+                          `--------------------------------------------------\n` +
+                          `[COMPUTATION & ALMANAC REDUCTION]\n` +
+                          `UTC Equivalent : ${document.getElementById('outUTCTime').innerText}\n` +
+                          `Computed GHA   : ${document.getElementById('outGHA').innerText}\n` +
+                          `Computed LHA   : ${document.getElementById('outLHA').innerText}\n` +
+                          `Declination    : ${document.getElementById('outDec').innerText}\n` +
+                          `A Factor Value : ${document.getElementById('outFactorA').innerText}\n` +
+                          `B Factor Value : ${document.getElementById('outFactorB').innerText}\n` +
+                          `C Factor Value : ${document.getElementById('outFactorC').innerText}\n` +
+                          `Azimuth (Z)    : ${document.getElementById('outAzimuthZ').innerText}\n\n` +
+                          `--------------------------------------------------\n` +
+                          `[FINAL SOLUTION OUTPUTS]\n` +
+                          `True Bearing(Zn): ${document.getElementById('outZn').innerText}\n` +
+                          `GYRO ERROR     : ${document.getElementById('outGyroErr').innerText}\n` +
+                          `COMPASS ERROR  : ${document.getElementById('outCompassErr').innerText}\n` +
+                          `DEVIATION      : ${document.getElementById('outDev').innerText}\n` +
+                          `==================================================\n` +
+                          `             End of Automated Record              `;
+            } else {
+                let starObj = document.getElementById('outStarName').innerText;
+                if(starObj === "---") { alert("Paki-locate muna ang Star bago i-save, boss!"); return; }
+                
+                filename = `StarFinder_Report_${document.getElementById('starDate').value}.txt`;
+                logText = `==================================================\n` +
+                          `        BRIDGE NAVIGATION SUITE - STAR FINDER     \n` +
+                          `           Developer: Renante Fullo               \n` +
+                          `==================================================\n` +
+                          `Log Created On : ${timestamp} UTC\n\n` +
+                          `[POSITION & TIME DATA]\n` +
+                          `Selected Star  : ${starObj}\n` +
+                          `Date (LMT)     : ${document.getElementById('starDate').value}\n` +
+                          `Time (LMT)     : ${document.getElementById('starTime').value} (ZD: ${document.getElementById('starZd').value})\n` +
+                          `Latitude       : ${document.getElementById('starLatDeg').value}°${document.getElementById('starLatMin').value}' ${document.getElementById('starLatDir').value}\n` +
+                          `Longitude      : ${document.getElementById('starLonDeg').value}°${document.getElementById('starLonMin').value}' ${document.getElementById('starLonDir').value}\n\n` +
+                          `--------------------------------------------------\n` +
+                          `[REDUCTION MATRIX BREAKDOWN]\n` +
+                          `UTC Equivalent : ${document.getElementById('outStarUTC').innerText}\n` +
+                          `Star SHA Data  : ${document.getElementById('outStarSHA').innerText}\n` +
+                          `Star Dec       : ${document.getElementById('outStarDec').innerText}\n` +
+                          `GHA / LHA Sync : ${document.getElementById('outStarGHALHA').innerText}\n` +
+                          `ABC Factors    : ${document.getElementById('outStarABC').innerText}\n\n` +
+                          `--------------------------------------------------\n` +
+                          `[TARGET POSITION TARGETS]\n` +
+                          `True Bearing(Zn): ${document.getElementById('outStarZn').innerText}\n` +
+                          `Altitude (Hc)  : ${document.getElementById('outStarHc').innerText}\n` +
+                          `==================================================\n` +
+                          `             End of Automated Record              `;
+            }
+
+            // Create blob and trigger browser download
+            let blob = new Blob([logText], {type: "text/plain;charset=utf-8"});
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
     </script>
 </body>
