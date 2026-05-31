@@ -81,7 +81,6 @@
         .math-header { font-size: 0.8rem; color: var(--accent-yellow); margin-top: 10px; font-weight: bold; text-transform: uppercase; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px;}
         footer { text-align: center; padding: 15px 0 5px 0; font-size: 0.75rem; color: #8b949e; border-top: 1px solid var(--border-color); margin-top: 15px; }
 
-        /* FIXED PRINT CSS SECTIONS */
         @media print {
             body { background: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; }
             header, .dev-brand-card, #liveClock, .tab-container, .btn-calc, .action-grid, footer { display: none !important; }
@@ -116,7 +115,6 @@
         <button class="tab-btn" onclick="switchTab('starTab', this)">Star Finder</button>
     </div>
 
-    <!-- ================= TAB 1: COMPASS ERROR ================= -->
     <div id="compassTab" class="tab-content active">
         <div class="card">
             <div class="section-title">1. Position & Target</div>
@@ -205,7 +203,6 @@
         </div>
     </div>
 
-    <!-- ================= TAB 2: STAR FINDER ================= -->
     <div id="starTab" class="tab-content">
         <div class="card">
             <div class="section-title">1. Star Finder Time & Position</div>
@@ -495,7 +492,7 @@
             document.getElementById('outDev').innerText = formatError(deviation);
         }
 
-        // ================= UPDATED TXT FILE SAVE SYSTEM (NO DEVELOPER INFO) =================
+        // ================= TINANGGAL NA ANG DEVELOPER LINE DITO =================
         function saveAsTxt(type) {
             let logText = "";
             let filename = "";
