@@ -72,6 +72,7 @@
         .res-line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); font-size: 0.85rem; }
         .res-line.total-highlight { font-size: 1.1rem; font-weight: bold; background: rgba(88,166,255,0.05); padding: 8px 4px; border: 1px solid rgba(88,166,255,0.2); border-radius: 4px; margin: 4px 0; }
         .val-out { font-weight: bold; color: #fff; }
+        .math-header { font-size: 0.8rem; color: var(--accent-yellow); margin-top: 10px; font-weight: bold; text-transform: uppercase; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px;}
         footer { text-align: center; padding: 15px 0 5px 0; font-size: 0.75rem; color: #8b949e; border-top: 1px solid var(--border-color); margin-top: 15px; }
     </style>
 </head>
@@ -141,12 +142,12 @@
         <div class="card">
             <div class="section-title">2. Compass Sighting Observations</div>
             <div class="row">
-                <div><label>Observed Gyro Brg (°G)</label><input type="number" step="0.1" id="brgGyro" placeholder="000.0" class="form-control"></div>
-                <div><label>Observed Compass Brg (°C)</label><input type="number" step="0.1" id="brgStd" placeholder="000.0" class="form-control"></div>
+                <div><label>Observed Gyro Brg (°G)</label><input type="number" step="0.1" id="brgGyro" placeholder="270.0" class="form-control"></div>
+                <div><label>Observed Compass Brg (°C)</label><input type="number" step="0.1" id="brgStd" placeholder="271.0" class="form-control"></div>
             </div>
             <div style="display:flex; gap:6px;">
-                <div style="flex:3;"><label>Variation (Chart Data)</label><input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control" value="0"></div>
-                <div style="flex:1;"><label>E/W</label><select id="varDir" class="form-control"><option value="E">E</option><option value="W">W</option></select></div>
+                <div style="flex:3;"><label>Variation (Chart Data)</label><input type="number" step="0.1" id="varVal" placeholder="0.0" class="form-control" value="4"></div>
+                <div style="flex:1;"><label>E/W</label><select id="varDir" class="form-control"><option value="E">E</option><option value="W" selected>W</option></select></div>
             </div>
             <button class="btn-calc" style="margin-top:12px;" onclick="runCompassEngine()">Execute Calculations</button>
         </div>
@@ -156,10 +157,23 @@
             <div class="results-panel">
                 <div class="res-line"><span>Target Object:</span><span class="val-out" id="outTrackObject">---</span></div>
                 <div class="res-line"><span>UTC Time:</span><span class="val-out" id="outUTCTime" style="color:var(--text-gold);">---</span></div>
+                
+                <div class="math-header">Almanac Matrix Factors</div>
+                <div class="res-line"><span>Computed GHA:</span><span class="val-out" id="outGHA">---</span></div>
+                <div class="res-line"><span>Computed LHA:</span><span class="val-out" id="outLHA">---</span></div>
+                <div class="res-line"><span>Declination:</span><span class="val-out" id="outDec">---</span></div>
+                
+                <div class="math-header">ABC Table Reduction</div>
+                <div class="res-line"><span>A Factor [tan(Lat)/tan(LHA)]:</span><span class="val-out" id="outFactorA">---</span></div>
+                <div class="res-line"><span>B Factor [tan(Dec)/sin(LHA)]:</span><span class="val-out" id="outFactorB">---</span></div>
+                <div class="res-line"><span>C Combined Factor (A ± B):</span><span class="val-out" id="outFactorC">---</span></div>
+                <div class="res-line"><span>Calculated Azimuth (Z):</span><span class="val-out" id="outAzimuthZ">---</span></div>
+
+                <div class="math-header">Final Solution Outputs</div>
                 <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outZn" style="color:var(--text-green);">---</span></div>
-                <div class="res-line"><span>GYRO ERROR:</span><span class="val-out" id="outGyroErr">---</span></div>
-                <div class="res-line"><span>COMPASS ERROR:</span><span class="val-out" id="outCompassErr">---</span></div>
-                <div class="res-line" style="border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; margin-top:4px;"><span>DEVIATION:</span><span class="val-out" id="outDev" style="color:var(--accent-yellow);">---</span></div>
+                <div class="res-line"><span>GYRO ERROR (Zn - Gyro):</span><span class="val-out" id="outGyroErr">---</span></div>
+                <div class="res-line"><span>COMPASS ERROR (Zn - Compass):</span><span class="val-out" id="outCompassErr">---</span></div>
+                <div class="res-line" style="border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; margin-top:4px;"><span>DEVIATION (Error - Var):</span><span class="val-out" id="outDev" style="color:var(--accent-yellow);">---</span></div>
             </div>
         </div>
     </div>
@@ -220,13 +234,19 @@
                 <div class="res-line"><span>UTC Equivalent:</span><span class="val-out" id="outStarUTC">---</span></div>
                 <div class="res-line"><span>SHA Data:</span><span class="val-out" id="outStarSHA">---</span></div>
                 <div class="res-line"><span>Declination:</span><span class="val-out" id="outStarDec">---</span></div>
+                
+                <div class="math-header">ABC Calculation Breakdown</div>
+                <div class="res-line"><span>Computed GHA / LHA:</span><span class="val-out" id="outStarGHALHA">---</span></div>
+                <div class="res-line"><span>ABC Factors (A / B / C):</span><span class="val-out" id="outStarABC">---</span></div>
+
+                <div class="math-header">Reduction Position Results</div>
                 <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outStarZn" style="color:var(--text-green);">---</span></div>
                 <div class="res-line total-highlight" style="background:rgba(88,166,255,0.05);"><span>Altitude Angle (Hc):</span><span class="val-out" id="outStarHc" style="color:var(--text-gold);">---</span></div>
             </div>
         </div>
     </div>
 
-    <footer>Bridge Navigation Suite v4.6 | Powered by Renante Fullo</footer>
+    <footer>Bridge Navigation Suite v4.7 | Powered by Renante Fullo</footer>
 
     <script>
         const starDb = {
@@ -253,11 +273,10 @@
             findGroup.innerHTML += `<option value="${star}">${star}</option>`;
         });
 
-        // Default time setter
         document.getElementById('date').value = "2026-05-31";
         document.getElementById('starDate').value = "2026-05-31";
-        document.getElementById('time').value = "17:53";
-        document.getElementById('starTime').value = "17:53";
+        document.getElementById('time').value = "17:59";
+        document.getElementById('starTime').value = "17:59";
 
         setInterval(() => { document.getElementById('liveClock').innerText = new Date().toUTCString().replace("GMT", "UTC"); }, 1000);
 
@@ -287,31 +306,11 @@
             return Math.abs(norm).toFixed(1) + "° " + (norm >= 0 ? "E" : "W");
         }
 
-        function solveZnAndHc(lat, lon, dec, ghaObject) {
-            let lha = (ghaObject + lon + 360) % 360;
-            let latR = lat * Math.PI / 180;
-            let decR = dec * Math.PI / 180;
-            let lhaR = lha * Math.PI / 180;
-
-            let sinHc = Math.sin(latR) * Math.sin(decR) + Math.cos(latR) * Math.cos(decR) * Math.cos(lhaR);
-            let hc = Math.asin(sinHc) * 180 / Math.PI;
-
-            let cosZ = (Math.sin(decR) - Math.sin(latR) * sinHc) / (Math.cos(latR) * Math.cos(hc * Math.PI / 180));
-            let z = Math.acos(Math.max(-1, Math.min(1, cosZ))) * 180 / Math.PI;
-
-            let zn = (lha > 180) ? z : 360 - z; 
-            if (lat < 0) { zn = (lha > 180) ? 180 - z : 180 + z; }
-
-            return { zn: (zn + 360) % 360, hc: hc };
-        }
-
-        // HIGH PRECISION ALMANAC ALGORITHM FOR THE SUN (YEAR 2026 VERIFIED)
         function getHighPrecisionSolarData(dateStr, utcDecimal) {
             let entryDate = new Date(dateStr + "T00:00:00Z");
             let jan1_2026 = new Date("2026-01-01T00:00:00Z");
             let dayOfYear = (entryDate - jan1_2026) / 86400000 + 1 + (utcDecimal / 24);
 
-            // Orbit positioning parameters for 2026
             let meanAnomaly = (356.0 + 0.98560028 * dayOfYear) * Math.PI / 180;
             let meanLongitude = (279.5 + 0.98564736 * dayOfYear) * Math.PI / 180;
             
@@ -320,7 +319,6 @@
 
             let dec = Math.asin(Math.sin(obliquity) * Math.sin(eclipticLongitude)) * 180 / Math.PI;
 
-            // Equation of Time calculation to solve GHA shift
             let num = Math.cos(obliquity) * Math.sin(eclipticLongitude);
             let den = Math.cos(eclipticLongitude);
             let ra = Math.atan2(num, den);
@@ -330,7 +328,6 @@
             if (eotMinutes > 20) eotMinutes -= 1440;
             if (eotMinutes < -20) eotMinutes += 1440;
 
-            // True GHA Sun calculation based on Solar Transit Meridian
             let gha = (utcDecimal * 15 + 180 + (eotMinutes / 4)) % 360;
             if (gha < 0) gha += 360;
 
@@ -339,7 +336,6 @@
 
         function getBasicObjectData(targetObj, dateStr, utc) {
             let dec = 0, gha = 0, sha = "N/A";
-            
             let entryDate = new Date(dateStr + "T00:00:00Z");
             let jan1 = new Date("2026-01-01T00:00:00Z");
             let epDay = (entryDate - jan1) / 86400000 + (utc / 24);
@@ -347,20 +343,59 @@
 
             if (targetObj === "Sun") {
                 let sunData = getHighPrecisionSolarData(dateStr, utc);
-                dec = sunData.dec;
-                gha = sunData.gha;
-            } else if (targetObj === "Moon") { dec = 18.2; gha = (ghaAries + 42.5) % 360; } 
+                dec = sunData.dec; gha = sunData.gha;
+            } else if (targetObj === "Moon") { dec = 21.9; gha = (ghaAries + 15.4) % 360; } 
               else if (targetObj === "Venus") { dec = 22.4; gha = (ghaAries + 12.3) % 360; } 
               else if (targetObj === "Mars") { dec = 15.1; gha = (ghaAries + 284.6) % 360; } 
               else if (targetObj === "Jupiter") { dec = 23.2; gha = (ghaAries + 148.1) % 360; } 
               else if (targetObj === "Saturn") { dec = -2.5; gha = (ghaAries + 301.4) % 360; } 
               else if (starDb[targetObj]) {
                 let star = starDb[targetObj];
-                dec = star.dec;
-                gha = (ghaAries + star.sha) % 360;
-                sha = star.sha.toFixed(1) + "°";
+                dec = star.dec; gha = (ghaAries + star.sha) % 360; sha = star.sha.toFixed(1) + "°";
             }
             return { dec: dec, gha: gha, sha: sha };
+        }
+
+        function runABCAlphaEngine(lat, lon, dec, gha) {
+            let lha = (gha + lon + 360) % 360;
+            let latR = lat * Math.PI / 180;
+            let decR = dec * Math.PI / 180;
+            let lhaR = lha * Math.PI / 180;
+
+            // Factor A = tan(Lat) / tan(LHA)
+            let factorA = Math.tan(latR) / Math.tan(lhaR);
+            // Factor B = tan(Dec) / sin(LHA)
+            let factorB = Math.tan(decR) / Math.sin(lhaR);
+            
+            // Standard reduction logic rules
+            let dirA = (lha > 90 && lha < 270) ? "N" : "S";
+            let dirB = (dec >= 0) ? "N" : "S";
+
+            let valA = factorA;
+            let valB = factorB;
+
+            // Combined Factor C
+            let factorC = 0;
+            if (dirA === dirB) {
+                factorC = valA + valB;
+            } else {
+                factorC = valA - valB;
+            }
+
+            let sinHc = Math.sin(latR) * Math.sin(decR) + Math.cos(latR) * Math.cos(decR) * Math.cos(lhaR);
+            let hc = Math.asin(sinHc) * 180 / Math.PI;
+
+            let cosZ = (Math.sin(decR) - Math.sin(latR) * sinHc) / (Math.cos(latR) * Math.cos(hc * Math.PI / 180));
+            let z = Math.acos(Math.max(-1, Math.min(1, cosZ))) * 180 / Math.PI;
+
+            let zn = (lha > 180) ? z : 360 - z;
+            if (lat < 0) { zn = (lha > 180) ? 180 - z : 180 + z; }
+
+            return {
+                gha: gha, lha: lha, dec: dec,
+                a: factorA, b: factorB, c: factorC,
+                z: z, zn: (zn + 360) % 360, hc: hc
+            };
         }
 
         function findStarDetails() {
@@ -379,13 +414,17 @@
             document.getElementById('outStarUTC').innerText = Math.floor(utc).toString().padStart(2,'0') + ":" + Math.round((utc%1)*60).toString().padStart(2,'0') + " UTC";
 
             let data = getBasicObjectData(targetObj, dateVal, utc);
-            let results = solveZnAndHc(lat, lon, data.dec, data.gha);
+            let res = runABCAlphaEngine(lat, lon, data.dec, data.gha);
 
             document.getElementById('outStarName').innerText = targetObj.toUpperCase();
             document.getElementById('outStarSHA').innerText = data.sha;
             document.getElementById('outStarDec').innerText = Math.abs(data.dec).toFixed(1) + "° " + (data.dec>=0?'N':'S');
-            document.getElementById('outStarZn').innerText = results.zn.toFixed(1) + "° True";
-            document.getElementById('outStarHc').innerText = results.hc.toFixed(1) + "°";
+            
+            document.getElementById('outStarGHALHA').innerText = `GHA: ${res.gha.toFixed(1)}° | LHA: ${res.lha.toFixed(1)}°`;
+            document.getElementById('outStarABC').innerText = `A: ${Math.abs(res.a).toFixed(3)} | B: ${Math.abs(res.b).toFixed(3)} | C: ${res.c.toFixed(3)}`;
+            
+            document.getElementById('outStarZn').innerText = res.zn.toFixed(1) + "° True";
+            document.getElementById('outStarHc').innerText = res.hc.toFixed(1) + "°";
         }
 
         function runCompassEngine() {
@@ -404,19 +443,27 @@
             document.getElementById('outUTCTime').innerText = Math.floor(utc).toString().padStart(2,'0') + ":" + Math.round((utc%1)*60).toString().padStart(2,'0') + " UTC";
 
             let data = getBasicObjectData(targetObj, dateVal, utc);
-            let results = solveZnAndHc(lat, lon, data.dec, data.gha);
+            let res = runABCAlphaEngine(lat, lon, data.dec, data.gha);
 
-            let zn = results.zn;
+            // Display Live Steps to Analytics Panel
             document.getElementById('outTrackObject').innerText = targetObj.toUpperCase();
-            document.getElementById('outZn').innerText = zn.toFixed(1) + "° True";
+            document.getElementById('outGHA').innerText = res.gha.toFixed(1) + "°";
+            document.getElementById('outLHA').innerText = res.lha.toFixed(1) + "°";
+            document.getElementById('outDec').innerText = Math.abs(res.dec).toFixed(1) + "° " + (res.dec >= 0 ? "N" : "S");
+            
+            document.getElementById('outFactorA').innerText = res.a.toFixed(4);
+            document.getElementById('outFactorB').innerText = res.b.toFixed(4);
+            document.getElementById('outFactorC').innerText = res.c.toFixed(4);
+            document.getElementById('outAzimuthZ').innerText = res.z.toFixed(1) + "°";
+            document.getElementById('outZn').innerText = res.zn.toFixed(1) + "° True";
             
             let obsGyro = parseFloat(document.getElementById('brgGyro').value) || 0;
             let obsCompass = parseFloat(document.getElementById('brgStd').value) || 0;
             let chartVar = parseFloat(document.getElementById('varVal').value) || 0;
             if(document.getElementById('varDir').value === 'W') chartVar = -chartVar;
 
-            let gyroError = zn - obsGyro;
-            let compassError = zn - obsCompass;
+            let gyroError = res.zn - obsGyro;
+            let compassError = res.zn - obsCompass;
             let deviation = compassError - chartVar;
 
             document.getElementById('outGyroErr').innerText = formatError(gyroError);
