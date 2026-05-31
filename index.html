@@ -162,12 +162,18 @@
         <div class="card">
             <div class="section-title">2. Compass Sighting Observations</div>
             <div class="row">
-                <div><label>Observed Gyro Brg (°G)</label><input type="number" step="0.1" id="brgGyro" placeholder="270.0" class="form-control" value="292.3"></div>
-                <div><label>Observed Compass Brg (°C)</label><input type="number" step="0.1" id="brgStd" placeholder="271.0" class="form-control" value="292.5"></div>
+                <div><label>Ship's Heading Gyro (HDG G °)</label><input type="number" step="0.1" id="hdgGyro" placeholder="125.0" class="form-control" value="125.0"></div>
+                <div><label>Ship's Heading Compass (HDG C °)</label><input type="number" step="0.1" id="hdgStd" placeholder="124.0" class="form-control" value="124.0"></div>
             </div>
-            <div style="display:flex; gap:6px;">
-                <div style="flex:3;"><label>Variation (Chart Data)</label><input type="number" step="0.01" id="varVal" placeholder="0.0" class="form-control" value="1.93"></div>
-                <div style="flex:1;"><label>E/W</label><select id="varDir" class="form-control"><option value="E">E</option><option value="W" selected>W</option></select></div>
+            <div class="row">
+                <div><label>Observed Gyro Bearing (°G)</label><input type="number" step="0.1" id="brgGyro" placeholder="292.3" class="form-control" value="292.3"></div>
+                <div>
+                    <label>Variation (Chart Data)</label>
+                    <div style="display:flex; gap:4px;">
+                        <input type="number" step="0.01" id="varVal" placeholder="0.0" class="form-control" value="1.93" style="flex:2;">
+                        <select id="varDir" class="form-control" style="flex:1;"><option value="E">E</option><option value="W" selected>W</option></select>
+                    </div>
+                </div>
             </div>
             <button class="btn-calc" style="margin-top:12px;" onclick="runCompassEngine()">Execute Calculations</button>
         </div>
@@ -191,6 +197,7 @@
 
                 <div class="math-header">Final Solution Outputs</div>
                 <div class="res-line total-highlight"><span>True Bearing (Zn):</span><span class="val-out" id="outZn" style="color:var(--text-green);">---</span></div>
+                <div class="res-line"><span>Calculated Compass Brg (°C):</span><span class="val-out" id="outCalculatedCompBrg" style="color:var(--text-gold);">---</span></div>
                 <div class="res-line"><span>GYRO ERROR (Zn - Gyro):</span><span class="val-out" id="outGyroErr">---</span></div>
                 <div class="res-line"><span>COMPASS ERROR (Zn - Compass):</span><span class="val-out" id="outCompassErr">---</span></div>
                 <div class="res-line" style="border-top:1px dashed rgba(255,255,255,0.2); padding-top:6px; margin-top:4px;"><span>DEVIATION (Error - Var):</span><span class="val-out" id="outDev" style="color:var(--accent-yellow);">---</span></div>
@@ -478,21 +485,34 @@
             document.getElementById('outAzimuthZ').innerText = res.z.toFixed(1) + "°";
             document.getElementById('outZn').innerText = res.zn.toFixed(1) + "° True";
             
+            // MATH IMPLEMENTATION UPDATED FOR COMPASS ERROR LOGIC
+            let hdgGyro = parseFloat(document.getElementById('hdgGyro').value) || 0;
+            let hdgStd = parseFloat(document.getElementById('hdgStd').value) || 0;
             let obsGyro = parseFloat(document.getElementById('brgGyro').value) || 0;
-            let obsCompass = parseFloat(document.getElementById('brgStd').value) || 0;
             let chartVar = parseFloat(document.getElementById('varVal').value) || 0;
             if(document.getElementById('varDir').value === 'W') chartVar = -chartVar;
 
+            // 1. Gyro Error = Zn - Obs Gyro Bearing
             let gyroError = res.zn - obsGyro;
-            let compassError = res.zn - obsCompass;
+
+            // 2. Compass Bearing = Obs Gyro Bearing - (Gyro Heading - Standard Heading)
+            let headingDifference = hdgGyro - hdgStd;
+            let calculatedCompassBrg = obsGyro - headingDifference;
+            calculatedCompassBrg = (calculatedCompassBrg % 360 + 360) % 360;
+
+            // 3. Compass Error = Zn - Calculated Compass Bearing
+            let compassError = res.zn - calculatedCompassBrg;
+            
+            // 4. Deviation = Compass Error - Variation
             let deviation = compassError - chartVar;
 
+            // Updates to View Layout Interface
+            document.getElementById('outCalculatedCompBrg').innerText = calculatedCompassBrg.toFixed(1) + "° C";
             document.getElementById('outGyroErr').innerText = formatError(gyroError);
             document.getElementById('outCompassErr').innerText = formatError(compassError);
             document.getElementById('outDev').innerText = formatError(deviation);
         }
 
-        // ================= TINANGGAL NA ANG DEVELOPER LINE DITO =================
         function saveAsTxt(type) {
             let logText = "";
             let filename = "";
@@ -513,8 +533,9 @@
                           `Time (LMT)     : ${document.getElementById('time').value} (ZD: ${document.getElementById('zd').value})\n` +
                           `Latitude       : ${document.getElementById('latDeg').value}°${document.getElementById('latMin').value}' ${document.getElementById('latDir').value}\n` +
                           `Longitude      : ${document.getElementById('lonDeg').value}°${document.getElementById('lonMin').value}' ${document.getElementById('lonDir').value}\n` +
+                          `Ship Gyro Hdg  : ${document.getElementById('hdgGyro').value}°\n` +
+                          `Ship Std Hdg   : ${document.getElementById('hdgStd').value}°\n` +
                           `Obs. Gyro Brg  : ${document.getElementById('brgGyro').value}°G\n` +
-                          `Obs. Std Brg   : ${document.getElementById('brgStd').value}°C\n` +
                           `Chart Variation: ${document.getElementById('varVal').value}° ${document.getElementById('varDir').value}\n\n` +
                           `--------------------------------------------------\n` +
                           `[COMPUTATION & ALMANAC REDUCTION]\n` +
@@ -529,6 +550,7 @@
                           `--------------------------------------------------\n` +
                           `[FINAL SOLUTION OUTPUTS]\n` +
                           `True Bearing(Zn): ${document.getElementById('outZn').innerText}\n` +
+                          `Calc Compass Brg: ${document.getElementById('outCalculatedCompBrg').innerText}\n` +
                           `GYRO ERROR     : ${document.getElementById('outGyroErr').innerText}\n` +
                           `COMPASS ERROR  : ${document.getElementById('outCompassErr').innerText}\n` +
                           `DEVIATION      : ${document.getElementById('outDev').innerText}\n` +
